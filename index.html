@@ -1,0 +1,1677 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>KOL 合作管理平台 — 欧洲车企版</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=DM+Serif+Display&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.8.0/dist/tabler-icons.min.css">
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Inter',system-ui,sans-serif;background:#EEF2F7;color:#111827;font-size:14px;line-height:1.5;height:100vh;overflow:hidden}
+.app{display:flex;height:100vh}
+.sidebar{width:200px;background:#1B2B3C;flex-shrink:0;display:flex;flex-direction:column}
+.nav-logo{padding:18px 16px;border-bottom:0.5px solid rgba(255,255,255,.1);display:flex;align-items:center;gap:10px}
+.logo-icon{width:30px;height:30px;background:#0D9488;border-radius:7px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.logo-text{font-size:13px;font-weight:600;color:#fff;line-height:1.3}
+.logo-sub{font-size:10px;color:#64748B}
+.nav-section{padding:8px 0;flex:1}
+.nav-item{display:flex;align-items:center;gap:9px;padding:9px 16px;font-size:12px;color:#94A3B8;cursor:pointer;transition:all .15s;border-left:2px solid transparent}
+.nav-item:hover{color:#E2E8F0;background:rgba(255,255,255,.05)}
+.nav-item.active{color:#5EEAD4;border-left-color:#0D9488;background:rgba(13,148,136,.12)}
+.nav-item i{font-size:15px;flex-shrink:0}
+.nav-footer{padding:12px 16px;border-top:0.5px solid rgba(255,255,255,.08);font-size:10px;color:#475569}
+.main-area{flex:1;min-width:0;display:flex;flex-direction:column}
+.topbar{background:#fff;border-bottom:0.5px solid #E2E8F0;padding:0 20px;height:50px;display:flex;align-items:center;gap:12px;flex-shrink:0}
+.topbar-title{font-size:14px;font-weight:600;color:#111827;flex-shrink:0}
+.tb-spacer{flex:1}
+.tb-btn{font-size:12px;padding:5px 12px;border-radius:5px;border:0.5px solid #E2E8F0;background:#fff;cursor:pointer;color:#374151;font-family:inherit;display:inline-flex;align-items:center;gap:5px;flex-shrink:0;transition:all .15s}
+.tb-btn:hover{background:#F8FAFC}
+.tb-btn.teal{background:#0D9488;color:#fff;border-color:#0D9488}
+.tb-btn.teal:hover{background:#0F766E}
+.tb-btn.red{background:#DC2626;color:#fff;border-color:#DC2626}
+.content{flex:1;overflow-y:auto;padding:20px 20px 40px}
+.page{display:none}.page.active{display:block}
+.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px}
+.metric-card{background:#fff;border:0.5px solid #E2E8F0;border-radius:9px;padding:14px}
+.mc-icon{width:32px;height:32px;border-radius:7px;display:flex;align-items:center;justify-content:center;float:right;margin-top:-2px}
+.mc-label{font-size:11px;color:#6B7280;margin-bottom:5px}
+.mc-num{font-size:26px;font-weight:600;color:#111827;line-height:1;margin-bottom:4px}
+.mc-sub{font-size:10px;color:#9CA3AF}
+.card{background:#fff;border:0.5px solid #E2E8F0;border-radius:9px;overflow:hidden;margin-bottom:12px}
+.card-head{padding:11px 14px;border-bottom:0.5px solid #F1F5F9;display:flex;align-items:center;justify-content:space-between}
+.ch-title{font-size:12px;font-weight:600;color:#374151;display:flex;align-items:center;gap:6px}
+.badge{font-size:10px;font-weight:500;padding:2px 7px;border-radius:20px;border:0.5px solid;display:inline-block;white-space:nowrap}
+.b-green{background:#ECFDF5;color:#047857;border-color:rgba(4,120,87,.25)}
+.b-blue{background:#EFF6FF;color:#1D4ED8;border-color:rgba(37,99,235,.25)}
+.b-amber{background:#FFFBEB;color:#92400E;border-color:rgba(180,83,9,.25)}
+.b-red{background:#FEF2F2;color:#991B1B;border-color:rgba(185,28,28,.25)}
+.b-gray{background:#F8FAFC;color:#4B5563;border-color:#E2E8F0}
+.b-teal{background:#F0FDFA;color:#0F766E;border-color:rgba(13,148,136,.25)}
+/* KOL grid */
+.kol-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.kol-card{background:#fff;border:0.5px solid #E2E8F0;border-radius:9px;padding:13px;cursor:pointer;transition:all .15s;position:relative}
+.kol-card:hover{border-color:#0D9488;box-shadow:0 2px 10px rgba(13,148,136,.12)}
+.kol-card-top{display:flex;gap:9px;margin-bottom:8px}
+.kol-avatar{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;flex-shrink:0;overflow:hidden}
+.kol-avatar img{width:100%;height:100%;object-fit:cover}
+.kol-name{font-size:12px;font-weight:500;color:#111827}
+.kol-handle{font-size:10px;color:#6B7280;margin-bottom:3px}
+.kol-scores{display:flex;gap:6px;padding-top:8px;border-top:0.5px solid #F1F5F9;margin-top:4px}
+.ks-box{flex:1;text-align:center;background:#F8FAFC;border-radius:5px;padding:5px 3px}
+.ks-label{font-size:9px;color:#9CA3AF;margin-bottom:2px}
+.ks-num{font-size:15px;font-weight:600;line-height:1}
+.ks-bar{height:2px;border-radius:1px;background:#E2E8F0;margin-top:3px;overflow:hidden}
+.ks-fill{height:100%;border-radius:1px}
+.kol-del{position:absolute;top:8px;right:8px;width:22px;height:22px;border-radius:50%;background:#FEF2F2;color:#DC2626;border:none;cursor:pointer;font-size:12px;display:none;align-items:center;justify-content:center}
+.kol-card:hover .kol-del{display:flex}
+/* Filter */
+.filter-bar{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;align-items:center}
+.filter-bar select{font-size:11px;padding:5px 8px;border:0.5px solid #E2E8F0;border-radius:5px;background:#fff;color:#374151;font-family:inherit;outline:none;height:30px}
+/* Stage nav */
+.stage-nav{display:flex;background:#fff;border:0.5px solid #E2E8F0;border-radius:9px;overflow:hidden;margin-bottom:12px}
+.stage-item{flex:1;padding:9px 4px;text-align:center;cursor:pointer;border-right:0.5px solid #F1F5F9;transition:all .15s;position:relative}
+.stage-item:last-child{border-right:none}
+.stage-item:hover{background:#F8FAFC}
+.stage-item.active{background:#F0FDFA}
+.stage-item.active::after{content:'';position:absolute;bottom:0;left:0;right:0;height:2px;background:#0D9488}
+.si-num{font-size:16px;font-weight:600;color:#374151}
+.stage-item.active .si-num{color:#0D9488}
+.si-name{font-size:9px;color:#9CA3AF;margin-top:1px}
+.stage-item.active .si-name{color:#0F766E}
+/* Deal item */
+.deal-item{display:flex;align-items:center;gap:12px;padding:10px 14px;border-bottom:0.5px solid #F1F5F9;transition:background .1s}
+.deal-item:last-child{border-bottom:none}
+.deal-item:hover{background:#FAFAFA}
+.deal-avatar{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;flex-shrink:0;overflow:hidden}
+.deal-avatar img{width:100%;height:100%;object-fit:cover}
+/* Table */
+.data-table{width:100%;border-collapse:collapse}
+.data-table th{font-size:10px;font-weight:500;color:#6B7280;text-align:left;padding:8px 12px;background:#F8FAFC;border-bottom:0.5px solid #E2E8F0;text-transform:uppercase;letter-spacing:.04em}
+.data-table td{font-size:12px;color:#374151;padding:9px 12px;border-bottom:0.5px solid #F1F5F9;vertical-align:middle}
+.data-table tr:last-child td{border-bottom:none}
+.data-table tr:hover td{background:#FAFAFA}
+/* Empty state */
+.empty-state{text-align:center;padding:48px 24px;color:#9CA3AF}
+.empty-state i{font-size:36px;display:block;margin-bottom:10px;opacity:.4}
+.empty-state p{font-size:13px;margin-bottom:14px}
+/* Modal overlay */
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:200;align-items:center;justify-content:center;padding:16px}
+.overlay.open{display:flex}
+.modal{background:#fff;border-radius:12px;width:640px;max-height:92vh;overflow-y:auto;border:0.5px solid #E2E8F0;display:flex;flex-direction:column}
+.modal-hd{padding:16px 20px;border-bottom:0.5px solid #F1F5F9;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:#fff;z-index:1}
+.modal-hd h3{font-size:15px;font-weight:600;color:#111827}
+.modal-body{padding:20px;flex:1}
+.modal-footer{padding:12px 20px;border-top:0.5px solid #F1F5F9;display:flex;gap:8px;justify-content:flex-end;position:sticky;bottom:0;background:#fff}
+/* Modal tabs */
+.m-tabs{display:flex;gap:0;border-bottom:0.5px solid #E2E8F0;margin-bottom:16px}
+.m-tab{font-size:12px;padding:8px 14px;border:none;background:transparent;color:#6B7280;cursor:pointer;font-family:inherit;border-bottom:2px solid transparent;margin-bottom:-0.5px;transition:all .15s}
+.m-tab.active{color:#0D9488;border-bottom-color:#0D9488;font-weight:500}
+/* Form fields */
+.field{margin-bottom:12px}
+.field label{display:block;font-size:11px;font-weight:500;color:#374151;margin-bottom:4px}
+.hint{font-size:10px;color:#9CA3AF;margin-bottom:3px;display:block}
+.field input,.field select,.field textarea{width:100%;padding:7px 10px;border:0.5px solid #E2E8F0;border-radius:5px;background:#fff;color:#111827;font-size:13px;font-family:inherit;outline:none;transition:border-color .15s;-moz-appearance:textfield}
+.field input:focus,.field select:focus{border-color:#0D9488;box-shadow:0 0 0 3px rgba(13,148,136,.1)}
+.field input[type=number]::-webkit-outer-spin-button,.field input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none}
+.fr2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.fr3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+/* YouTube import */
+.yt-import-box{background:#F8FAFC;border:0.5px solid #E2E8F0;border-radius:8px;padding:14px;margin-bottom:16px}
+.yt-import-title{font-size:12px;font-weight:600;color:#374151;margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.yt-input-row{display:flex;gap:8px}
+.yt-input-row input{flex:1;padding:7px 10px;border:0.5px solid #E2E8F0;border-radius:5px;font-size:12px;font-family:inherit;outline:none;transition:border-color .15s}
+.yt-input-row input:focus{border-color:#DC2626}
+.yt-status{font-size:11px;margin-top:8px;min-height:16px}
+.yt-status.loading{color:#6B7280}
+.yt-status.success{color:#047857}
+.yt-status.error{color:#DC2626}
+/* YouTube preview card */
+.yt-preview{background:#fff;border:0.5px solid #E2E8F0;border-radius:8px;padding:12px;margin-top:10px}
+.yt-preview-top{display:flex;gap:10px;align-items:flex-start;margin-bottom:10px}
+.yt-thumb{width:44px;height:44px;border-radius:50%;object-fit:cover;flex-shrink:0;background:#E2E8F0}
+.yt-ch-name{font-size:13px;font-weight:500;color:#111827}
+.yt-ch-handle{font-size:11px;color:#6B7280}
+.yt-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:8px}
+.yt-stat{background:#F8FAFC;border-radius:5px;padding:6px;text-align:center}
+.yt-stat-label{font-size:9px;color:#9CA3AF;margin-bottom:2px}
+.yt-stat-val{font-size:13px;font-weight:600;color:#111827}
+.yt-stat-sub{font-size:9px;color:#6B7280;margin-top:1px}
+.api-key-row{display:flex;gap:8px;margin-bottom:10px}
+.api-key-row input{flex:1;padding:7px 10px;border:0.5px solid #E2E8F0;border-radius:5px;font-size:12px;font-family:inherit;outline:none}
+.api-key-row input:focus{border-color:#DC2626}
+/* Score preview */
+.score-preview{background:#F8FAFC;border:0.5px solid #E2E8F0;border-radius:8px;padding:12px;margin-top:12px}
+.sp-title{font-size:11px;font-weight:500;color:#6B7280;margin-bottom:8px}
+.sp-scores{display:flex;gap:12px}
+.sp-score{text-align:center;flex:1}
+.sp-num{font-size:28px;font-weight:600;font-family:'DM Serif Display',serif;line-height:1}
+.sp-label{font-size:10px;color:#6B7280;margin-top:2px}
+.sp-grade{font-size:11px;font-weight:500;padding:3px 10px;border-radius:20px;border:0.5px solid;display:inline-block;margin-top:5px}
+/* Section divider */
+.sec-divider{font-size:11px;font-weight:600;color:#374151;margin:16px 0 10px;padding-bottom:6px;border-bottom:0.5px solid #F1F5F9;display:flex;align-items:center;gap:6px}
+.sec-divider i{font-size:14px;color:#0D9488}
+/* API note */
+.api-note{background:#FFFBEB;border:0.5px solid rgba(180,83,9,.25);border-radius:6px;padding:10px 12px;font-size:11px;color:#92400E;line-height:1.6;margin-bottom:14px}
+</style>
+</head>
+<body>
+<div class="app">
+
+<nav class="sidebar">
+  <div class="nav-logo">
+    <div class="logo-icon"><i class="ti ti-car" style="font-size:16px;color:#fff" aria-hidden="true"></i></div>
+    <div><div class="logo-text">KOL 管理平台</div><div class="logo-sub">欧洲车企出海版</div></div>
+  </div>
+  <div class="nav-section">
+    <div class="nav-item active" onclick="navigate('dashboard',this)"><i class="ti ti-layout-dashboard" aria-hidden="true"></i>数据大屏</div>
+    <div class="nav-item" onclick="navigate('kol',this)"><i class="ti ti-users" aria-hidden="true"></i>KOL 列表</div>
+    <div class="nav-item" onclick="navigate('collab',this)"><i class="ti ti-git-branch" aria-hidden="true"></i>合作管理</div>
+    <div class="nav-item" onclick="navigate('contracts',this)"><i class="ti ti-file-text" aria-hidden="true"></i>合同管理</div>
+    <div class="nav-item" onclick="navigate('results',this)"><i class="ti ti-chart-bar" aria-hidden="true"></i>效果复盘</div>
+    <div class="nav-item" onclick="navigate('settings',this)"><i class="ti ti-settings" aria-hidden="true"></i>系统设置</div>
+  </div>
+  <div class="nav-footer">v3.0 · 英 / 法 / 德市场</div>
+</nav>
+
+<div class="main-area">
+<div class="topbar">
+  <span class="topbar-title" id="topbar-title">数据大屏</span>
+  <span class="tb-spacer"></span>
+  <div id="sync-badge" style="display:none;align-items:center;gap:5px;font-size:11px;padding:4px 10px;border-radius:20px;border:0.5px solid #E2E8F0;background:#F8FAFC;color:#6B7280;flex-shrink:0">
+    <span id="sync-dot" style="width:6px;height:6px;border-radius:50%;background:#9CA3AF;flex-shrink:0"></span>
+    <span id="sync-text">未连接</span>
+  </div>
+  <button class="tb-btn" id="sync-btn" onclick="manualSync()" style="display:none" title="从云端同步最新数据"><i class="ti ti-cloud-download" style="font-size:13px" aria-hidden="true"></i>云端同步</button>
+  <button class="tb-btn" onclick="document.getElementById('batch-file-input').click()" title="批量导入 Excel"><i class="ti ti-table-import" style="font-size:13px" aria-hidden="true"></i>批量导入</button>
+  <input type="file" id="batch-file-input" accept=".xlsx,.xls" style="display:none" onchange="batchImport(this.files[0])">
+  <button class="tb-btn teal" onclick="openAddKOL()"><i class="ti ti-plus" style="font-size:13px" aria-hidden="true"></i>添加 KOL</button>
+</div>
+
+<div class="content">
+
+<!-- 数据大屏 -->
+<div id="page-dashboard" class="page active">
+  <div class="grid4">
+    <div class="metric-card">
+      <div class="mc-icon" style="background:#EFF6FF"><i class="ti ti-users" style="font-size:16px;color:#2563EB" aria-hidden="true"></i></div>
+      <div class="mc-label">KOL 总数</div>
+      <div class="mc-num" id="dash-total">0</div>
+      <div class="mc-sub">已录入平台</div>
+    </div>
+    <div class="metric-card">
+      <div class="mc-icon" style="background:#ECFDF5"><i class="ti ti-star" style="font-size:16px;color:#047857" aria-hidden="true"></i></div>
+      <div class="mc-label">A 级 KOL</div>
+      <div class="mc-num" id="dash-agrade">0</div>
+      <div class="mc-sub">商业价值 ≥ 80 分</div>
+    </div>
+    <div class="metric-card" style="border-left:3px solid #0D9488">
+      <div class="mc-icon" style="background:#F0FDFA"><i class="ti ti-player-play" style="font-size:16px;color:#0D9488" aria-hidden="true"></i></div>
+      <div class="mc-label">执行中</div>
+      <div class="mc-num" id="dash-active">0</div>
+      <div class="mc-sub">投放执行阶段</div>
+    </div>
+    <div class="metric-card" style="border-left:3px solid #DC2626">
+      <div class="mc-icon" style="background:#FEF2F2"><i class="ti ti-shield-exclamation" style="font-size:16px;color:#DC2626" aria-hidden="true"></i></div>
+      <div class="mc-label">高风险预警</div>
+      <div class="mc-num" id="dash-risk">0</div>
+      <div class="mc-sub">需法务 / 品牌复核</div>
+    </div>
+  </div>
+
+  <div class="grid2">
+    <div class="card">
+      <div class="card-head"><span class="ch-title"><i class="ti ti-trending-up" style="font-size:14px;color:#0D9488" aria-hidden="true"></i>商业价值分布</span></div>
+      <div style="padding:14px" id="dash-chart">
+        <div class="empty-state" style="padding:24px"><i class="ti ti-chart-bar" aria-hidden="true"></i><p>添加 KOL 后显示评分分布图</p></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-head"><span class="ch-title"><i class="ti ti-shield-exclamation" style="font-size:14px;color:#DC2626" aria-hidden="true"></i>风险预警</span></div>
+      <div style="padding:14px" id="dash-alerts">
+        <div class="empty-state" style="padding:24px"><i class="ti ti-shield-check" aria-hidden="true"></i><p>暂无风险预警</p></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-head"><span class="ch-title"><i class="ti ti-star" style="font-size:14px;color:#D97706" aria-hidden="true"></i>KOL 评分排名</span></div>
+    <div id="dash-table">
+      <div class="empty-state"><i class="ti ti-users" aria-hidden="true"></i><p>还没有 KOL 数据<br>点击右上角「添加 KOL」开始录入</p><button class="tb-btn teal" onclick="openAddKOL()"><i class="ti ti-plus" style="font-size:13px" aria-hidden="true"></i>添加 KOL</button></div>
+    </div>
+  </div>
+</div>
+
+<!-- KOL 列表 -->
+<div id="page-kol" class="page">
+  <div class="filter-bar">
+    <select onchange="renderKOLPage()"><option value="">全部平台</option><option>YouTube</option><option>Instagram</option><option>TikTok</option></select>
+    <select onchange="renderKOLPage()"><option value="">全部市场</option><option>DE</option><option>GB</option><option>FR</option></select>
+    <select onchange="renderKOLPage()"><option value="">全部风险</option><option>低风险</option><option>中风险</option><option>高风险</option></select>
+    <span style="font-size:11px;color:#6B7280;margin-left:4px">共 <span id="kol-count">0</span> 个 KOL</span>
+    <span class="tb-spacer"></span>
+    <button class="tb-btn teal" onclick="openAddKOL()"><i class="ti ti-plus" style="font-size:13px" aria-hidden="true"></i>添加 KOL</button>
+  </div>
+  <div class="kol-grid" id="kol-grid">
+    <div style="grid-column:1/-1">
+      <div class="empty-state"><i class="ti ti-users" aria-hidden="true"></i><p>KOL 列表为空<br>通过「添加 KOL」接入 YouTube 频道数据</p><button class="tb-btn teal" onclick="openAddKOL()"><i class="ti ti-plus" style="font-size:13px" aria-hidden="true"></i>添加 KOL</button></div>
+    </div>
+  </div>
+</div>
+
+<!-- 合作管理 -->
+<div id="page-collab" class="page">
+  <div class="stage-nav" id="stage-nav">
+    <div class="stage-item active" onclick="selectStage(0,this)"><div class="si-num" id="sn0">0</div><div class="si-name">KOL识别</div></div>
+    <div class="stage-item" onclick="selectStage(1,this)"><div class="si-num" id="sn1">0</div><div class="si-name">资质评估</div></div>
+    <div class="stage-item" onclick="selectStage(2,this)"><div class="si-num" id="sn2">0</div><div class="si-name">比稿议价</div></div>
+    <div class="stage-item" onclick="selectStage(3,this)"><div class="si-num" id="sn3">0</div><div class="si-name">合同签订</div></div>
+    <div class="stage-item" onclick="selectStage(4,this)"><div class="si-num" id="sn4">0</div><div class="si-name">投放执行</div></div>
+    <div class="stage-item" onclick="selectStage(5,this)"><div class="si-num" id="sn5">0</div><div class="si-name">效果归因</div></div>
+    <div class="stage-item" onclick="selectStage(6,this)"><div class="si-num" id="sn6">0</div><div class="si-name">续约/归档</div></div>
+  </div>
+  <div class="card">
+    <div class="card-head"><span class="ch-title" id="stage-title">KOL 识别阶段</span><button class="tb-btn teal" style="font-size:11px;padding:4px 10px" onclick="openAddKOL()">+ 新增</button></div>
+    <div id="collab-list"></div>
+  </div>
+</div>
+
+<!-- 合同管理 -->
+<div id="page-contracts" class="page">
+  <div class="empty-state"><i class="ti ti-file-text" aria-hidden="true"></i><p>暂无合同记录<br>在 KOL 合作进入「合同签订」阶段后自动生成</p></div>
+</div>
+
+<!-- 效果复盘 -->
+<div id="page-results" class="page">
+  <div class="empty-state"><i class="ti ti-chart-bar" aria-hidden="true"></i><p>暂无复盘数据<br>在 KOL 合作进入「效果归因」阶段后记录数据</p></div>
+</div>
+
+<!-- 系统设置 -->
+<div id="page-settings" class="page">
+  <div class="card" style="margin-bottom:12px">
+    <div class="card-head"><span class="ch-title"><i class="ti ti-brand-youtube" style="font-size:14px;color:#DC2626" aria-hidden="true"></i>YouTube API 配置</span></div>
+    <div style="padding:16px">
+      <div class="api-note">
+        <strong>使用说明：</strong>需要 YouTube Data API v3 密钥。<br>
+        1. 前往 <a href="https://console.cloud.google.com/" target="_blank" style="color:#0D9488">Google Cloud Console</a> → 启用 YouTube Data API v3 → 创建 API 密钥<br>
+        2. 将密钥填入下方并保存<br>
+        3. 如从本地文件打开，部分浏览器会因安全策略阻止 API 请求。建议在终端运行 <code style="background:rgba(0,0,0,.08);padding:1px 5px;border-radius:3px">python3 -m http.server 8080</code> 后通过 http://localhost:8080 访问
+      </div>
+      <div class="field">
+        <label>YouTube Data API v3 密钥</label>
+        <div style="display:flex;gap:8px">
+          <input type="password" id="settings-apikey" placeholder="AIzaSy..." style="flex:1;padding:7px 10px;border:0.5px solid #E2E8F0;border-radius:5px;font-size:13px;font-family:inherit;outline:none" value="">
+          <button class="tb-btn teal" onclick="saveApiKey()"><i class="ti ti-device-floppy" style="font-size:13px" aria-hidden="true"></i>保存</button>
+          <button class="tb-btn" onclick="toggleApiKeyVisibility()"><i class="ti ti-eye" style="font-size:13px" aria-hidden="true"></i></button>
+        </div>
+      </div>
+      <div id="settings-key-status" style="font-size:11px;color:#047857;margin-top:4px"></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-head"><span class="ch-title"><i class="ti ti-database" style="font-size:14px;color:#6B7280" aria-hidden="true"></i>数据管理</span></div>
+    <div style="padding:16px;display:flex;gap:8px">
+      <button class="tb-btn" onclick="exportData()"><i class="ti ti-download" style="font-size:13px" aria-hidden="true"></i>导出所有数据</button>
+      <button class="tb-btn" onclick="document.getElementById('import-json-input').click()"><i class="ti ti-upload" style="font-size:13px" aria-hidden="true"></i>导入数据</button>
+      <input type="file" id="import-json-input" accept=".json" style="display:none" onchange="importJSON(this.files[0])">
+      <button class="tb-btn red" onclick="if(confirm('确认清空所有 KOL 数据？此操作不可撤销'))clearAllData()"><i class="ti ti-trash" style="font-size:13px" aria-hidden="true"></i>清空数据</button>
+    </div>
+  </div>
+
+  <div class="card" style="margin-bottom:12px;border:0.5px solid rgba(99,102,241,.3)">
+    <div class="card-head"><span class="ch-title"><i class="ti ti-brain" style="font-size:14px;color:#4F46E5" aria-hidden="true"></i>C端情感API配置（VOC自动获取）</span><span id="cend-badge" style="font-size:11px;padding:2px 8px;border-radius:20px;background:#F8FAFC;color:#9CA3AF;border:0.5px solid #E2E8F0">未配置</span></div>
+    <div style="padding:16px">
+      <div class="api-note" style="background:#F0F4FF;border-color:rgba(99,102,241,.25);color:#3730A3">
+        <strong>接入说明：</strong>配置后，添加 KOL 时可一键从 C 端情感档案 API 自动获取评论区 VOC 数据，填入「评论质量」「VOC话题深度」「负面VOC识别价值」「历史车主反馈」四个字段，并自动检测技术声明风险信号。<br>
+        接口依据：§4.3 关键抱怨排名查询 + §4.4 品牌态度查询（触点渠道参数，Archive v3 已支持）
+      </div>
+      <div class="fr2">
+        <div class="field">
+          <label>C端API Base URL</label>
+          <input type="text" id="cend-url" placeholder="https://your-sentiment-api.com" style="padding:7px 10px;border:0.5px solid #E2E8F0;border-radius:5px;font-size:13px;font-family:inherit;outline:none;width:100%">
+        </div>
+        <div class="field">
+          <label>默认查询品牌</label>
+          <select id="cend-brand-cfg" style="padding:7px 10px;border:0.5px solid #E2E8F0;border-radius:5px;font-size:13px;font-family:inherit;outline:none;width:100%;height:36px">
+            <option value="BYD">BYD</option>
+            <option value="Xpeng">小鹏 Xpeng</option>
+          </select>
+        </div>
+      </div>
+      <div class="fr2">
+        <div class="field">
+          <label>Bearer Token</label>
+          <input type="password" id="cend-token" placeholder="eyJhbGci..." style="padding:7px 10px;border:0.5px solid #E2E8F0;border-radius:5px;font-size:13px;font-family:inherit;outline:none;width:100%">
+        </div>
+        <div class="field">
+          <label>运行模式</label>
+          <select id="cend-mode" style="padding:7px 10px;border:0.5px solid #E2E8F0;border-radius:5px;font-size:13px;font-family:inherit;outline:none;width:100%;height:36px">
+            <option value="demo">演示模式（模拟API响应，不发真实请求）</option>
+            <option value="live">生产模式（调用真实C端API）</option>
+          </select>
+        </div>
+      </div>
+      <div style="margin-top:4px;font-size:11px;color:#6B7280;line-height:1.6;margin-bottom:12px">
+        <strong>API 请求路径约定（需与C端团队确认最终路径）：</strong><br>
+        §4.3 → <code style="background:#F1F5F9;padding:1px 5px;border-radius:3px">GET {base}/complaints?brand=&amp;region=&amp;channel=&amp;start_date=&amp;end_date=&amp;top_n=</code><br>
+        §4.4 → <code style="background:#F1F5F9;padding:1px 5px;border-radius:3px">GET {base}/brand-attitude?brand=&amp;region=&amp;channel=&amp;start_date=&amp;end_date=</code>
+      </div>
+      <div style="display:flex;gap:8px">
+        <button class="tb-btn" style="background:#4F46E5;color:#fff;border-color:#4F46E5" onclick="saveCEndConfig()"><i class="ti ti-device-floppy" style="font-size:13px" aria-hidden="true"></i>保存配置</button>
+        <button class="tb-btn" onclick="testCEndAPI()"><i class="ti ti-plug" style="font-size:13px" aria-hidden="true"></i>测试连接</button>
+      </div>
+      <div id="cend-cfg-status" style="font-size:11px;margin-top:8px;min-height:16px"></div>
+    </div>
+  </div>
+    <div class="card-head"><span class="ch-title"><i class="ti ti-cloud" style="font-size:14px;color:#6366F1" aria-hidden="true"></i>云端数据共享（Supabase）</span><span id="cloud-status-badge" style="font-size:11px;padding:2px 8px;border-radius:20px;background:#F8FAFC;color:#9CA3AF;border:0.5px solid #E2E8F0">未配置</span></div>
+    <div style="padding:16px">
+      <div class="api-note" style="background:#F0F0FF;border-color:rgba(99,102,241,.25);color:#3730A3">
+        <strong>团队共享配置（5 分钟完成）：</strong><br>
+        1. 前往 <a href="https://supabase.com" target="_blank" style="color:#6366F1">supabase.com</a> 免费注册 → 新建项目（选欧洲区域）<br>
+        2. 进入项目 → 左侧 <strong>SQL Editor</strong> → 粘贴下方建表语句并执行<br>
+        3. 进入 <strong>Settings → API</strong> → 复制 Project URL 和 anon public key<br>
+        4. 填入下方并保存 → 所有团队成员使用相同的 URL 和 Key 即可共享数据
+      </div>
+
+      <div style="background:#1E1E2E;border-radius:7px;padding:12px;font-family:'SF Mono','Fira Code',monospace;font-size:11px;color:#A6E3A1;margin-bottom:14px;position:relative">
+        <div style="color:#6C7086;margin-bottom:6px;font-size:10px">-- 在 Supabase SQL Editor 中执行此语句</div>
+        <div>create table if not exists kols (</div>
+        <div>&nbsp;&nbsp;id text primary key,</div>
+        <div>&nbsp;&nbsp;name text not null,</div>
+        <div>&nbsp;&nbsp;kol_data jsonb not null,</div>
+        <div>&nbsp;&nbsp;updated_at timestamptz default now()</div>
+        <div>);</div>
+        <div style="margin-top:6px">alter table kols enable row level security;</div>
+        <div>create policy "team_access" on kols for all using (true) with check (true);</div>
+        <button onclick="copySQL()" style="position:absolute;top:10px;right:10px;background:rgba(255,255,255,.1);border:none;color:#CDD6F4;font-size:10px;padding:3px 8px;border-radius:4px;cursor:pointer;font-family:inherit">复制</button>
+      </div>
+
+      <div class="field">
+        <label>Supabase Project URL</label>
+        <input type="text" id="sb-url" placeholder="https://xxxxxxxxxxxx.supabase.co" style="padding:7px 10px;border:0.5px solid #E2E8F0;border-radius:5px;font-size:13px;font-family:inherit;outline:none;width:100%">
+      </div>
+      <div class="field">
+        <label>Supabase anon public key</label>
+        <input type="password" id="sb-key" placeholder="eyJhbGci..." style="padding:7px 10px;border:0.5px solid #E2E8F0;border-radius:5px;font-size:13px;font-family:inherit;outline:none;width:100%">
+      </div>
+      <div style="display:flex;gap:8px;margin-top:4px">
+        <button class="tb-btn" style="background:#6366F1;color:#fff;border-color:#6366F1" onclick="saveSupabase()"><i class="ti ti-device-floppy" style="font-size:13px" aria-hidden="true"></i>保存并连接</button>
+        <button class="tb-btn" onclick="manualSync()"><i class="ti ti-refresh" style="font-size:13px" aria-hidden="true"></i>立即同步</button>
+        <button class="tb-btn ghost" onclick="pushAllToCloud()"><i class="ti ti-cloud-upload" style="font-size:13px" aria-hidden="true"></i>上传本地数据到云端</button>
+      </div>
+      <div id="sb-status" style="font-size:11px;margin-top:8px;min-height:16px"></div>
+    </div>
+  </div>
+</div>
+
+</div><!-- /content -->
+</div><!-- /main-area -->
+</div><!-- /app -->
+
+<!-- ══ 添加 KOL 弹窗 ══ -->
+<div class="overlay" id="add-kol-overlay" onclick="if(event.target===this)closeAddKOL()">
+<div class="modal">
+  <div class="modal-hd">
+    <h3><i class="ti ti-user-plus" style="font-size:16px;vertical-align:-2px;margin-right:6px;color:#0D9488" aria-hidden="true"></i>添加 KOL</h3>
+    <button class="tb-btn ghost" onclick="closeAddKOL()" style="padding:4px 8px" aria-label="关闭"><i class="ti ti-x" style="font-size:16px" aria-hidden="true"></i></button>
+  </div>
+  <div class="modal-body">
+
+    <!-- YouTube 导入 -->
+    <div class="yt-import-box">
+      <div class="yt-import-title"><i class="ti ti-brand-youtube" style="font-size:16px;color:#DC2626" aria-hidden="true"></i>从 YouTube 自动导入频道数据</div>
+      <div class="api-key-row">
+        <input type="password" id="modal-apikey" placeholder="YouTube API 密钥（AIzaSy…）已在设置中保存则无需重填">
+        <button class="tb-btn" style="background:#DC2626;color:#fff;border-color:#DC2626;flex-shrink:0" onclick="fetchYouTube()"><i class="ti ti-download" style="font-size:13px" aria-hidden="true"></i>抓取数据</button>
+      </div>
+      <div class="field" style="margin-bottom:0">
+        <input id="yt-url-input" placeholder="频道链接（如 https://youtube.com/@AutoBildDE 或频道 ID UCxxxxxx）">
+      </div>
+      <div class="yt-status" id="yt-status"></div>
+      <div id="yt-preview-card" style="display:none">
+        <div class="yt-preview">
+          <div class="yt-preview-top">
+            <img id="yt-thumb" class="yt-thumb" src="" alt="频道头像">
+            <div>
+              <div class="yt-ch-name" id="yt-ch-name">—</div>
+              <div class="yt-ch-handle" id="yt-ch-handle">—</div>
+              <div style="font-size:10px;color:#9CA3AF;margin-top:2px" id="yt-ch-desc"></div>
+            </div>
+          </div>
+          <div class="yt-stats">
+            <div class="yt-stat"><div class="yt-stat-label">订阅数</div><div class="yt-stat-val" id="yt-subs">—</div></div>
+            <div class="yt-stat"><div class="yt-stat-label">近10期平均播放</div><div class="yt-stat-val" id="yt-avgviews">—</div></div>
+            <div class="yt-stat"><div class="yt-stat-label">互动率 ERR</div><div class="yt-stat-val" id="yt-err">—</div><div class="yt-stat-sub">likes+comments/subs</div></div>
+            <div class="yt-stat"><div class="yt-stat-label">频道所在国</div><div class="yt-stat-val" id="yt-country">—</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 分 tab 的补充信息 -->
+    <div class="m-tabs">
+      <button class="m-tab active" onclick="switchMTab(0,this)">受众与内容</button>
+      <button class="m-tab" onclick="switchMTab(1,this)">商业条件</button>
+      <button class="m-tab" onclick="switchMTab(2,this)">风险评估</button>
+    </div>
+
+    <!-- Tab 0: 受众与内容 -->
+    <div id="m-tab-0">
+      <div class="sec-divider"><i class="ti ti-users" aria-hidden="true"></i>基本信息</div>
+      <div class="fr2">
+        <div class="field"><label>KOL / 频道名称</label><input id="f-name" placeholder="（从 YouTube 自动填入）"></div>
+        <div class="field"><label>Handle</label><input id="f-handle" placeholder="@channelName"></div>
+      </div>
+      <div class="fr3">
+        <div class="field"><label>主要市场</label><select id="f-country"><option value="DE">🇩🇪 德国</option><option value="GB">🇬🇧 英国</option><option value="FR">🇫🇷 法国</option><option value="MULTI">多国</option></select></div>
+        <div class="field"><label>平台</label><select id="f-platform"><option>YouTube</option><option>Instagram</option><option>TikTok</option><option>多平台</option></select></div>
+        <div class="field"><label>内容方向</label><select id="f-niche"><option value="review">深度测评</option><option value="ev">新能源/EV</option><option value="luxury">豪华/超跑</option><option value="family">家用/SUV</option><option value="tech">汽车科技</option><option value="lifestyle">生活方式</option></select></div>
+      </div>
+
+      <div class="sec-divider"><i class="ti ti-target" aria-hidden="true"></i>受众匹配度</div>
+      <div class="fr2">
+        <div class="field"><label>英法德目标市场受众占比 %</label><span class="hint">（从 YouTube 自动填入，可手动修正）</span><input type="number" id="f-geo" min="0" max="100"></div>
+        <div class="field"><label>语言内容能力</label><select id="f-lang"><option value="3">三语（EN/FR/DE）</option><option value="2">双语</option><option value="1">单语</option></select></div>
+      </div>
+      <div class="fr3">
+        <div class="field"><label>汽车/EV 兴趣受众 %</label><span class="hint">无数据填 50</span><input type="number" id="f-autointerest" min="0" max="100"></div>
+        <div class="field"><label>25–55 岁受众占比 %</label><input type="number" id="f-age" min="0" max="100"></div>
+        <div class="field"><label>受众收入水平</label><select id="f-income"><option value="high">高（€60K+）</option><option value="mid">中（€30–60K）</option><option value="low">低/未知</option></select></div>
+      </div>
+
+      <div class="sec-divider"><i class="ti ti-camera" aria-hidden="true"></i>内容专业度</div>
+      <div class="fr3">
+        <div class="field"><label>汽车内容专注度 %</label><input type="number" id="f-focus" min="0" max="100"></div>
+        <div class="field"><label>测评深度</label><select id="f-depth"><option value="deep">深度（含技术参数）</option><option value="mid">中度（常规体验）</option><option value="surface">浅度（外观展示）</option></select></div>
+        <div class="field"><label>专业可信度</label><select id="f-credibility"><option value="high">高（有行业背景）</option><option value="mid">中（一定专业性）</option><option value="low">低（无专业背书）</option></select></div>
+      </div>
+
+      <div class="sec-divider"><i class="ti ti-message-circle" aria-hidden="true"></i>互动质量 &amp; VOC</div>
+
+      <!-- C端情感API接入区 -->
+      <div style="background:#F0F4FF;border:0.5px solid rgba(99,102,241,.3);border-radius:8px;padding:12px;margin-bottom:12px">
+        <div style="font-size:11px;font-weight:600;color:#4338CA;margin-bottom:8px;display:flex;align-items:center;gap:5px">
+          <i class="ti ti-brain" style="font-size:13px" aria-hidden="true"></i>C端情感API · 自动填入 VOC 字段
+        </div>
+        <div style="display:flex;gap:8px;margin-bottom:6px">
+          <input id="f-cend-channel" placeholder="触点渠道ID（如 youtube:@autogefuehl）" style="flex:1;padding:7px 10px;border:0.5px solid rgba(99,102,241,.3);border-radius:5px;font-size:12px;font-family:inherit;outline:none;background:#fff">
+          <select id="f-cend-brand" style="padding:7px 10px;border:0.5px solid rgba(99,102,241,.3);border-radius:5px;font-size:12px;font-family:inherit;outline:none;background:#fff">
+            <option value="BYD">BYD</option>
+            <option value="Xpeng">小鹏 Xpeng</option>
+          </select>
+          <button onclick="fetchCEndVOC()" style="padding:7px 14px;background:#4F46E5;color:#fff;border:none;border-radius:5px;font-size:12px;font-family:inherit;cursor:pointer;white-space:nowrap;font-weight:500">
+            <i class="ti ti-download" style="font-size:12px;vertical-align:-1px" aria-hidden="true"></i> 获取VOC数据
+          </button>
+        </div>
+        <div id="cend-status" style="font-size:11px;min-height:14px;margin-bottom:4px"></div>
+        <div id="cend-preview" style="display:none"></div>
+        <div style="font-size:10px;color:#6366F1;margin-top:4px">
+          未配置API时使用演示模式 · 在系统设置中配置C端API地址和Token
+        </div>
+      </div>
+
+      <div class="fr2">
+        <div class="field"><label>平均互动率 ERR %</label><span class="hint">（从 YouTube 自动计算）</span><input type="number" id="f-err" min="0" max="100" step="0.1"></div>
+        <div class="field"><label>视频平均完播率 %</label><span class="hint">健康值 40–60%</span><input type="number" id="f-completion" min="0" max="100"></div>
+      </div>
+      <div class="fr2">
+        <div class="field"><label>评论质量 <span style="font-size:10px;color:#6366F1">可由C端自动填入</span></label><select id="f-comment"><option value="high">高（大量真实长评论）</option><option value="mid">中（有一定真实讨论）</option><option value="low">低（以表情为主）</option></select></div>
+        <div class="field"><label>评论区汽车话题深度 <span style="font-size:10px;color:#6366F1">可由C端自动填入</span></label><select id="f-vocdepth"><option value="high">高（有续航/充电/经销商讨论）</option><option value="mid">中（偶有实质汽车评论）</option><option value="low">低（泛化互动为主）</option></select></div>
+      </div>
+      <div class="fr2">
+        <div class="field"><label>负面VOC识别价值 <span style="font-size:10px;color:#6366F1">可由C端自动填入</span></label><select id="f-vocneg"><option value="high">高（有清晰用车痛点/改进建议）</option><option value="mid">中（偶有可参考负面声音）</option><option value="low">低（无实质负面反馈）</option></select></div>
+        <div class="field"><label>历史车主反馈产出 <span style="font-size:10px;color:#6366F1">可由C端自动填入</span></label><select id="f-vochistory"><option value="yes">是（有完整VOC复盘记录）</option><option value="sometimes">偶有（部分内容有反馈）</option><option value="no">暂无</option></select></div>
+      </div>
+    </div>
+
+    <!-- Tab 1: 商业条件 -->
+    <div id="m-tab-1" style="display:none">
+      <div class="sec-divider"><i class="ti ti-currency-euro" aria-hidden="true"></i>商业效率</div>
+      <div class="fr2">
+        <div class="field"><label>CPM 报价 €（每千次曝光）</label><input type="number" id="f-cpm" min="0" step="0.5"></div>
+        <div class="field"><label>行业基准 CPM €</label><span class="hint">同类 KOL 市场均价，默认 €20</span><input type="number" id="f-benchcpm" min="0" step="0.5" placeholder="20"></div>
+      </div>
+      <div class="fr2">
+        <div class="field"><label>内容二次复用权</label><select id="f-reuse"><option value="full">全权复用</option><option value="limited">限制复用</option><option value="none">不允许</option></select></div>
+        <div class="field"><label>排他要求</label><select id="f-exclusive"><option value="none">无排他</option><option value="soft">软排他（同类品牌）</option><option value="hard">强排他（全品类）</option></select></div>
+      </div>
+
+      <div class="sec-divider"><i class="ti ti-heart" aria-hidden="true"></i>品牌适配度</div>
+      <div class="fr3">
+        <div class="field"><label>品牌调性匹配</label><select id="f-brandtone"><option value="match">高度匹配</option><option value="neutral">中性通用</option><option value="conflict">不匹配</option></select></div>
+        <div class="field"><label>历史合作品牌调性</label><select id="f-histtone"><option value="match">以同级品牌为主</option><option value="neutral">品类混合</option><option value="conflict">冲突品牌为主</option></select></div>
+        <div class="field"><label>内容风格一致性</label><select id="f-styleconsist"><option value="high">高</option><option value="mid">中</option><option value="low">低</option></select></div>
+      </div>
+
+      <div class="sec-divider"><i class="ti ti-check" aria-hidden="true"></i>合作可执行性</div>
+      <div class="fr2">
+        <div class="field"><label>历史履约率 %</label><input type="number" id="f-fulfill" min="0" max="100"></div>
+        <div class="field"><label>Brief 配合意愿</label><select id="f-briefcoop"><option value="high">高（主动配合审核）</option><option value="mid">中（基本配合）</option><option value="low">低（排斥修改）</option></select></div>
+      </div>
+    </div>
+
+    <!-- Tab 2: 风险评估 -->
+    <div id="m-tab-2" style="display:none">
+      <div class="api-note" style="background:#FEF2F2;border-color:rgba(185,28,28,.25);color:#991B1B">分数越高 = 风险越大。触发任一高风险项将自动标记，建议进入法务复核流程。</div>
+      <div class="fr2">
+        <div class="field"><label>历史负面事件</label><select id="r-incident"><option value="none">无记录</option><option value="minor">轻微（已处理）</option><option value="serious">严重（处理中）</option><option value="critical">极严重（司法/封号）⚠</option></select></div>
+        <div class="field"><label>广告标注习惯</label><select id="r-adlabel"><option value="always">一贯规范标注</option><option value="sometimes">偶尔遗漏</option><option value="never">从不标注 ⚠</option></select></div>
+      </div>
+      <div class="fr2">
+        <div class="field"><label>竞品绑定状态</label><select id="r-competitor"><option value="none">无竞品合作</option><option value="nonexclusive">有非排他合作</option><option value="exclusive">有排他合作 ⚠</option><option value="ambassador">品牌大使（深度绑定）⚠</option></select></div>
+        <div class="field"><label>僵尸粉比例 %</label><span class="hint">超过 40% 触发高风险</span><input type="number" id="r-fakepct" min="0" max="100"></div>
+      </div>
+      <div class="fr2">
+        <div class="field"><label>GDPR 违规记录</label><select id="r-gdpr"><option value="none">无违规</option><option value="minor">轻微违规（已整改）</option><option value="serious">严重违规 ⚠</option></select></div>
+        <div class="field"><label>未成年受众比例 %</label><span class="hint">超过 30% 触发预警</span><input type="number" id="r-minorpct" min="0" max="100"></div>
+      </div>
+      <div class="fr2">
+        <div class="field"><label>夸大技术/环保声明</label><select id="r-exaggerate"><option value="none">无夸大记录</option><option value="minor">轻微夸大</option><option value="serious">有严重夸大声明</option></select></div>
+        <div class="field"><label>历史延期/删帖</label><select id="r-latedelete"><option value="none">无记录</option><option value="occasional">偶有</option><option value="frequent">频繁</option></select></div>
+      </div>
+    </div>
+
+    <!-- 评分预览 -->
+    <div class="score-preview" id="score-preview" style="display:none">
+      <div class="sp-title">评分预览（填写完整后实时更新）</div>
+      <div class="sp-scores">
+        <div class="sp-score">
+          <div class="sp-num" id="prev-cs" style="color:#0D9488">—</div>
+          <div class="sp-label">商业价值分</div>
+          <div class="sp-grade b-green" id="prev-cg">—</div>
+        </div>
+        <div class="sp-score">
+          <div class="sp-num" id="prev-rs" style="color:#DC2626">—</div>
+          <div class="sp-label">风险评分</div>
+          <div class="sp-grade b-green" id="prev-rg">—</div>
+        </div>
+        <div class="sp-score" id="prev-flags-box" style="display:none">
+          <div style="color:#DC2626"><i class="ti ti-alert-triangle" style="font-size:20px" aria-hidden="true"></i></div>
+          <div class="sp-label" style="color:#DC2626;font-weight:500" id="prev-flags">高风险预警</div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /modal-body -->
+  <div class="modal-footer">
+    <button class="tb-btn ghost" onclick="closeAddKOL()">取消</button>
+    <button class="tb-btn" onclick="calcPreview()"><i class="ti ti-calculator" style="font-size:13px" aria-hidden="true"></i>计算评分</button>
+    <button class="tb-btn teal" onclick="saveKOL()"><i class="ti ti-device-floppy" style="font-size:13px" aria-hidden="true"></i>保存到 KOL 列表</button>
+  </div>
+</div>
+</div>
+
+<!-- ══ 批量导入弹窗 ══ -->
+<div class="overlay" id="batch-overlay" onclick="if(event.target===this)closeBatch()">
+<div class="modal" style="max-width:520px">
+  <div class="modal-hd">
+    <h3><i class="ti ti-table-import" style="font-size:16px;vertical-align:-2px;margin-right:6px;color:#0D9488" aria-hidden="true"></i>批量导入 Excel</h3>
+    <button class="tb-btn ghost" onclick="closeBatch()" style="padding:4px 8px" aria-label="关闭"><i class="ti ti-x" style="font-size:16px" aria-hidden="true"></i></button>
+  </div>
+  <div class="modal-body" style="padding:20px">
+    <div id="batch-status-area">
+      <div style="background:#F0FDFA;border:0.5px solid rgba(13,148,136,.25);border-radius:8px;padding:14px;margin-bottom:16px;font-size:12px;color:#0F766E;line-height:1.7">
+        <strong>读取到以下数据，确认后批量导入：</strong><br>
+        将从「商业价值模型」Sheet 读取所有行<br>
+        若同时有「风险评估模型」Sheet，会合并风险数据<br>
+        已有同名 KOL 将跳过（不覆盖）
+      </div>
+      <div id="batch-preview"></div>
+    </div>
+  </div>
+  <div class="modal-footer">
+    <button class="tb-btn ghost" onclick="closeBatch()">取消</button>
+    <button class="tb-btn teal" id="batch-confirm-btn" onclick="confirmBatchImport()" disabled><i class="ti ti-device-floppy" style="font-size:13px" aria-hidden="true"></i>确认导入</button>
+  </div>
+</div>
+</div>
+
+<script>
+/* ═══ STATE ═══ */
+let KOLS = JSON.parse(localStorage.getItem('kol_platform_kols') || '[]');
+let API_KEY = localStorage.getItem('kol_yt_api_key') || '';
+let YT_FETCHED = null;
+let currentStageIdx = 0;
+
+/* ═══ SCORING ENGINE ═══ */
+const CLAYERS = [
+  {weight:.20},{weight:.15},{weight:.15},{weight:.15},{weight:.15},{weight:.10},{weight:.10}
+];
+function clamp(v,a,b){return Math.min(Math.max(v,a),b)}
+function q3(v){return v==='high'?90:v==='mid'?60:25}
+function calcCommercial(d){
+  const geo=clamp(d.geo||0,0,100),lang=d.lang==3?100:d.lang==2?65:30,autoInt=clamp(d.autoInterest||50,0,100);
+  const ageScore=clamp(d.age||0,0,100),incomeScore=d.income==='high'?95:d.income==='mid'?65:35;
+  const L1=Math.round([geo*.25,lang*.20,autoInt*.20,(incomeScore*.5+ageScore*.5)*.20,(geo+autoInt)/2*.15].reduce((s,v)=>s+v,0));
+  const L2=Math.round([clamp(d.focus||0,0,100)*.35,(d.depth==='deep'?95:d.depth==='mid'?65:30)*.35,q3(d.credibility)*.30].reduce((s,v)=>s+v,0));
+  const errS=clamp(Math.round(((d.err||0)/3)*100),0,100),compS=clamp(Math.round(((d.completion||0)/60)*100),0,100);
+  const L3=Math.round([errS*.30,compS*.25,q3(d.commentQuality)*.30,clamp(Math.round(((d.shareSave||0)/20)*100),0,100)*.15].reduce((s,v)=>s+v,0));
+  const L4=Math.round([q3(d.vocDepth)*.40,q3(d.vocNeg||'mid')*.30,(d.vocHistory==='yes'?90:d.vocHistory==='sometimes'?60:20)*.30].reduce((s,v)=>s+v,0));
+  const bench=parseFloat(d.benchCpm)||20,cpm=parseFloat(d.cpm)||bench,ratio=cpm/bench;
+  const cpmS=ratio<=0.8?100:ratio<=1.0?Math.round(100-(ratio-.8)*150):ratio<=1.5?Math.round(70-(ratio-1)*80):20;
+  const L5=Math.round([clamp(cpmS,0,100)*.40,(d.reuse==='full'?95:d.reuse==='limited'?60:20)*.35,(d.exclusive==='none'?90:d.exclusive==='soft'?65:25)*.25].reduce((s,v)=>s+v,0));
+  const L6=Math.round([(d.brandTone==='match'?90:d.brandTone==='neutral'?65:20)*.50,(d.histTone==='match'?90:d.histTone==='neutral'?65:20)*.30,q3(d.styleConsist)*.20].reduce((s,v)=>s+v,0));
+  const L7=Math.round([clamp(d.fulfill||0,0,100)*.35,q3(d.briefCoop)*.25,65*.25,65*.15].reduce((s,v)=>s+v,0));
+  const layers=[L1,L2,L3,L4,L5,L6,L7];
+  const total=Math.round(layers.reduce((s,v,i)=>s+v*CLAYERS[i].weight,0));
+  return{total,layers};
+}
+function calcRisk(d){
+  const flags=[];
+  const iS=({none:5,minor:35,serious:72,critical:100})[d.incident||'none'];
+  if(d.incident==='critical')flags.push('极严重负面事件');
+  const adS=({always:5,sometimes:45,never:95})[d.adlabel||'always'];
+  if(d.adlabel==='never')flags.push('拒绝广告披露标注');
+  const compS=({none:0,nonexclusive:30,exclusive:70,ambassador:100})[d.competitor||'none'];
+  if(d.competitor==='ambassador')flags.push('竞品品牌大使');
+  else if(d.competitor==='exclusive')flags.push('竞品排他合作');
+  const fp=Number(d.fakepct)||0,fakeS=fp>=40?100:fp>=30?80:fp>=15?40:5;
+  if(fp>=40)flags.push(`僵尸粉 ${fp}% 超高风险`);
+  else if(fp>=30)flags.push(`僵尸粉 ${fp}% 预警`);
+  const gdprS=({none:5,minor:40,serious:95})[d.gdpr||'none'];
+  if(d.gdpr==='serious')flags.push('严重 GDPR 违规');
+  const mp=Number(d.minorpct)||0,minorS=mp>=30?75:mp>=20?45:5;
+  if(mp>=30)flags.push(`未成年受众 ${mp}% 预警`);
+  const exS=({none:5,minor:40,serious:90})[d.exaggerate||'none'];
+  const lateS=({none:5,occasional:40,frequent:85})[d.latedelete||'none'];
+  const dims=[
+    Math.round(iS*.45+({none:5,minor:40,serious:90}[d.falsead||'none']||5)*.35+30*.20),
+    Math.round(adS*.50+30*.30+30*.20),
+    Math.round(compS*.50+clamp(Math.round(((d.compcontentpct||0)/50)*100),0,100)*.25+50*.25),
+    Math.round(fakeS*.45+30*.30+25*.25),
+    Math.round(gdprS*.55+45*.45),
+    Math.round(minorS*.60+25*.40),
+    Math.round(exS*.45+25*.30+30*.25),
+    Math.round(lateS*.55+25*.45)
+  ];
+  const weights=[.20,.15,.15,.15,.10,.10,.10,.05];
+  const total=Math.round(dims.reduce((s,v,i)=>s+v*weights[i],0));
+  return{total,dims,flags};
+}
+function gradeCS(s){return s>=80?{g:'A级',cls:'b-teal',color:'#0D9488'}:s>=65?{g:'B级',cls:'b-blue',color:'#2563EB'}:{g:'C级',cls:'b-amber',color:'#D97706'}}
+function gradeRS(s){return s>=61?{g:'高风险',cls:'b-red',color:'#DC2626'}:s>=31?{g:'中风险',cls:'b-amber',color:'#D97706'}:{g:'低风险',cls:'b-green',color:'#047857'}}
+function formatNum(n){n=parseInt(n)||0;return n>=1000000?(n/1000000).toFixed(1)+'M':n>=1000?Math.round(n/1000)+'K':n.toString()}
+
+/* ═══ YOUTUBE API ═══ */
+function getApiKey(){return document.getElementById('modal-apikey').value.trim()||API_KEY}
+function parseChannelInput(raw){
+  raw=raw.trim();
+  let handle='',channelId='';
+  if(raw.startsWith('UC')&&raw.length>10&&!raw.includes('/')&&!raw.includes('.')){channelId=raw}
+  else{
+    const m1=raw.match(/\/channel\/(UC[^/?&]+)/);
+    if(m1)channelId=m1[1];
+    else{
+      const m2=raw.match(/@([^/?&\s]+)/);
+      if(m2)handle=m2[1];
+      else if(!raw.includes('/')&&raw.length>0)handle=raw.replace('@','');
+    }
+  }
+  return{handle,channelId};
+}
+
+async function fetchYouTube(){
+  const key=getApiKey();
+  if(!key){setYTStatus('error','请先在设置中填写 YouTube API 密钥，或在输入框中直接填写');return}
+  const raw=document.getElementById('yt-url-input').value.trim();
+  if(!raw){setYTStatus('error','请输入 YouTube 频道链接或 @handle');return}
+  setYTStatus('loading','<i class="ti ti-loader" style="font-size:12px;animation:spin 1s linear infinite;display:inline-block"></i> 正在从 YouTube 抓取频道数据…');
+  document.getElementById('yt-preview-card').style.display='none';
+
+  try{
+    const{handle,channelId}=parseChannelInput(raw);
+    let chUrl=`https://www.googleapis.com/youtube/v3/channels?part=snippet,statistics&key=${key}`;
+    if(channelId)chUrl+=`&id=${channelId}`;
+    else if(handle)chUrl+=`&forHandle=${handle}`;
+    else{setYTStatus('error','无法识别频道格式，请输入 @handle 或频道 URL');return}
+
+    const chResp=await fetch(chUrl);
+    const chData=await chResp.json();
+    if(chData.error){setYTStatus('error','API 错误：'+chData.error.message);return}
+    if(!chData.items||chData.items.length===0){setYTStatus('error','未找到频道，请检查 URL 或 handle 是否正确');return}
+
+    const ch=chData.items[0];
+    const chId=ch.id;
+    const subs=parseInt(ch.statistics.subscriberCount)||0;
+    const country=ch.snippet.country||'—';
+
+    // Get recent 10 videos
+    const srchUrl=`https://www.googleapis.com/youtube/v3/search?part=id&channelId=${chId}&order=date&maxResults=10&type=video&key=${key}`;
+    const srchResp=await fetch(srchUrl);
+    const srchData=await srchResp.json();
+    const videoIds=(srchData.items||[]).map(v=>v.id.videoId).filter(Boolean);
+    let avgViews=0,err=0;
+
+    if(videoIds.length>0){
+      const vstUrl=`https://www.googleapis.com/youtube/v3/videos?part=statistics&id=${videoIds.join(',')}&key=${key}`;
+      const vstResp=await fetch(vstUrl);
+      const vstData=await vstResp.json();
+      const vids=vstData.items||[];
+      if(vids.length>0){
+        const totalViews=vids.reduce((s,v)=>s+parseInt(v.statistics.viewCount||0),0);
+        const totalLikes=vids.reduce((s,v)=>s+parseInt(v.statistics.likeCount||0),0);
+        const totalComments=vids.reduce((s,v)=>s+parseInt(v.statistics.commentCount||0),0);
+        avgViews=Math.round(totalViews/vids.length);
+        err=subs>0?parseFloat(((totalLikes+totalComments)/vids.length/subs*100).toFixed(2)):0;
+      }
+    }
+
+    YT_FETCHED={chId,subs,country,avgViews,err,name:ch.snippet.title,handle:'@'+(ch.snippet.customUrl||ch.snippet.title).replace('@',''),desc:ch.snippet.description||'',thumb:ch.snippet.thumbnails?.default?.url||''};
+
+    // Fill into form
+    document.getElementById('f-name').value=YT_FETCHED.name;
+    document.getElementById('f-handle').value=YT_FETCHED.handle;
+    if(country&&country!=='—'){
+      const sel=document.getElementById('f-country');
+      const map={'DE':'DE','GB':'GB','FR':'FR','US':'MULTI'};
+      sel.value=map[country]||'MULTI';
+    }
+    document.getElementById('f-err').value=err;
+
+    // Update preview card
+    document.getElementById('yt-thumb').src=YT_FETCHED.thumb;
+    document.getElementById('yt-ch-name').textContent=YT_FETCHED.name;
+    document.getElementById('yt-ch-handle').textContent=YT_FETCHED.handle;
+    document.getElementById('yt-ch-desc').textContent=(YT_FETCHED.desc||'').slice(0,80)+(YT_FETCHED.desc?.length>80?'…':'');
+    document.getElementById('yt-subs').textContent=formatNum(subs);
+    document.getElementById('yt-avgviews').textContent=formatNum(avgViews);
+    document.getElementById('yt-err').textContent=err+'%';
+    document.getElementById('yt-country').textContent=country;
+    document.getElementById('yt-preview-card').style.display='block';
+    setYTStatus('success','<i class="ti ti-circle-check" style="font-size:12px;vertical-align:-1px"></i> 数据抓取成功！已自动填入下方表单，请补充剩余字段');
+    calcPreview();
+  }catch(e){
+    setYTStatus('error','请求失败：'+e.message+'。如从 file:// 打开，请改用本地服务器（python3 -m http.server 8080）');
+  }
+}
+
+function setYTStatus(type,msg){const el=document.getElementById('yt-status');el.className='yt-status '+type;el.innerHTML=msg}
+
+/* ═══ PREVIEW SCORE ═══ */
+function calcPreview(){
+  const d=collectFormData();
+  const cs=calcCommercial(d),rs=calcRisk(d);
+  const cg=gradeCS(cs.total),rg=gradeRS(rs.total);
+  document.getElementById('prev-cs').textContent=cs.total;
+  document.getElementById('prev-cs').style.color=cg.color;
+  document.getElementById('prev-cg').className='sp-grade '+cg.cls;
+  document.getElementById('prev-cg').textContent=cg.g;
+  document.getElementById('prev-rs').textContent=rs.total;
+  document.getElementById('prev-rs').style.color=rg.color;
+  document.getElementById('prev-rg').className='sp-grade '+rg.cls;
+  document.getElementById('prev-rg').textContent=rg.g;
+  const fb=document.getElementById('prev-flags-box');
+  if(rs.flags.length){fb.style.display='';document.getElementById('prev-flags').textContent=rs.flags.slice(0,2).join(' / ')+(rs.flags.length>2?` 等${rs.flags.length}项`:'')}
+  else fb.style.display='none';
+  document.getElementById('score-preview').style.display='';
+}
+
+function collectFormData(){
+  const g=id=>document.getElementById(id)?.value||'';
+  const n=id=>parseFloat(document.getElementById(id)?.value)||0;
+  return{
+    name:g('f-name'),handle:g('f-handle'),country:g('f-country'),platform:g('f-platform'),niche:g('f-niche'),
+    geo:n('f-geo'),lang:parseInt(g('f-lang'))||1,autoInterest:n('f-autointerest'),age:n('f-age'),income:g('f-income'),
+    focus:n('f-focus'),depth:g('f-depth'),credibility:g('f-credibility'),
+    err:n('f-err'),completion:n('f-completion'),commentQuality:g('f-comment'),shareSave:n('f-sharesave')||10,
+    vocDepth:g('f-vocdepth'),vocNeg:g('f-vocneg')||'mid',vocHistory:g('f-vochistory')||'sometimes',
+    cpm:n('f-cpm'),benchCpm:n('f-benchcpm')||20,reuse:g('f-reuse'),exclusive:g('f-exclusive'),
+    brandTone:g('f-brandtone'),histTone:g('f-histtone'),styleConsist:g('f-styleconsist'),
+    fulfill:n('f-fulfill'),briefCoop:g('f-briefcoop'),dataReady:'passive',
+    incident:g('r-incident'),adlabel:g('r-adlabel'),competitor:g('r-competitor'),
+    fakepct:n('r-fakepct'),gdpr:g('r-gdpr'),minorpct:n('r-minorpct'),
+    exaggerate:g('r-exaggerate'),latedelete:g('r-latedelete'),
+    compcontentpct:0,falsead:'none',
+  };
+}
+
+/* ═══ KOL MANAGEMENT ═══ */
+function saveKOL(){
+  const d=collectFormData();
+  if(!d.name){alert('请填写 KOL 名称');return}
+  const cs=calcCommercial(d),rs=calcRisk(d);
+  const cg=gradeCS(cs.total),rg=gradeRS(rs.total);
+  const kol={
+    id:Date.now().toString(),
+    name:d.name,handle:d.handle||('@'+d.name.replace(/\s+/g,'')),
+    country:d.country,platform:d.platform,niche:d.niche,
+    followers:YT_FETCHED?formatNum(YT_FETCHED.subs):'—',
+    thumb:YT_FETCHED?.thumb||'',
+    data:d,
+    cs:cs.total,rs:rs.total,
+    grade:cg.g,rl:rg.g,
+    csColor:cg.color,rsColor:rg.color,
+    csClass:cg.cls,rsClass:rg.cls,
+    flags:rs.flags,
+    stage:0,
+    status:'筛选中',
+    addedAt:new Date().toLocaleDateString('zh-CN'),
+  };
+  KOLS.push(kol);
+  persist();
+  if (SB_URL && SB_KEY) pushToCloud(kol).then(() => setSyncBadge('ok'));
+  closeAddKOL();
+  updateDashboard();
+  renderKOLPage();
+  renderCollabPage();
+  navigate('kol',document.querySelectorAll('.nav-item')[1]);
+}
+
+function deleteKOL(id,e){
+  e.stopPropagation();
+  if(!confirm('确认删除此 KOL？'))return;
+  KOLS=KOLS.filter(k=>k.id!==id);
+  persist();
+  if (SB_URL && SB_KEY) deleteFromCloud(id).then(() => setSyncBadge('ok'));
+  updateDashboard();renderKOLPage();renderCollabPage();
+}
+
+function persist(){localStorage.setItem('kol_platform_kols',JSON.stringify(KOLS))}
+function clearAllData(){KOLS=[];persist();updateDashboard();renderKOLPage();renderCollabPage()}
+
+/* ═══ RENDER ═══ */
+function riskColor(rs){return rs>=61?'#DC2626':rs>=31?'#D97706':'#047857'}
+function initials(name){return name.split(/[\s@]/)[0].slice(0,2).toUpperCase()}
+function avatarBg(i){const cs=['#E0F2FE','#E8EDFF','#ECFDF5','#FEF9C3','#FEF2F2','#F5F3FF'];return cs[i%cs.length]}
+function avatarColor(i){const cs=['#0369A1','#3730A3','#047857','#713F12','#991B1B','#5B21B6'];return cs[i%cs.length]}
+
+function renderKOLPage(){
+  const grid=document.getElementById('kol-grid');
+  document.getElementById('kol-count').textContent=KOLS.length;
+  if(!KOLS.length){
+    grid.innerHTML='<div style="grid-column:1/-1"><div class="empty-state"><i class="ti ti-users" aria-hidden="true"></i><p>KOL 列表为空<br>通过「添加 KOL」接入 YouTube 频道数据</p><button class="tb-btn teal" onclick="openAddKOL()"><i class="ti ti-plus" style="font-size:13px" aria-hidden="true"></i>添加 KOL</button></div></div>';
+    return;
+  }
+  grid.innerHTML=KOLS.map((k,i)=>`
+    <div class="kol-card" onclick="showKOLDetail('${k.id}')">
+      <button class="kol-del" onclick="deleteKOL('${k.id}',event)" aria-label="删除"><i class="ti ti-x" style="font-size:11px" aria-hidden="true"></i></button>
+      <div class="kol-card-top">
+        <div class="kol-avatar" style="background:${avatarBg(i)};color:${avatarColor(i)}">
+          ${k.thumb?`<img src="${k.thumb}" alt="${k.name}" onerror="this.style.display='none';this.parentNode.textContent='${initials(k.name)}'">`:initials(k.name)}
+        </div>
+        <div style="flex:1;min-width:0">
+          <div class="kol-name">${k.name}</div>
+          <div class="kol-handle">${k.handle} · ${{DE:'🇩🇪',GB:'🇬🇧',FR:'🇫🇷',MULTI:'🌍'}[k.country]||''}${k.country}</div>
+          <div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:3px">
+            <span class="badge b-gray" style="font-size:9px">${k.platform}</span>
+            <span class="badge b-gray" style="font-size:9px">${k.followers} 粉丝</span>
+            ${k.flags.length?`<span class="badge b-red" style="font-size:9px">⚠ ${k.flags.length}项预警</span>`:''}
+          </div>
+        </div>
+      </div>
+      <div style="font-size:10px;color:#9CA3AF;margin-bottom:6px">${k.niche}</div>
+      <div class="kol-scores">
+        <div class="ks-box">
+          <div class="ks-label">商业价值分</div>
+          <div class="ks-num" style="color:${k.csColor}">${k.cs}</div>
+          <div class="ks-bar"><div class="ks-fill" style="width:${k.cs}%;background:${k.csColor}"></div></div>
+          <div style="font-size:9px;color:${k.csColor};margin-top:2px">${k.grade}</div>
+        </div>
+        <div class="ks-box">
+          <div class="ks-label">风险评分</div>
+          <div class="ks-num" style="color:${k.rsColor}">${k.rs}</div>
+          <div class="ks-bar"><div class="ks-fill" style="width:${k.rs}%;background:${k.rsColor}"></div></div>
+          <div style="font-size:9px;color:${k.rsColor};margin-top:2px">${k.rl}</div>
+        </div>
+        <div class="ks-box">
+          <div class="ks-label">录入日期</div>
+          <div style="font-size:11px;color:#374151;margin-top:4px">${k.addedAt}</div>
+          <div style="font-size:9px;color:#9CA3AF;margin-top:3px">${k.status}</div>
+        </div>
+      </div>
+    </div>`).join('');
+}
+
+function updateDashboard(){
+  const total=KOLS.length,agrade=KOLS.filter(k=>k.cs>=80).length;
+  const active=KOLS.filter(k=>k.stage===4).length,risk=KOLS.filter(k=>k.flags.length>0).length;
+  document.getElementById('dash-total').textContent=total;
+  document.getElementById('dash-agrade').textContent=agrade;
+  document.getElementById('dash-active').textContent=active;
+  document.getElementById('dash-risk').textContent=risk;
+  renderDashChart();renderDashAlerts();renderDashTable();
+}
+
+function renderDashChart(){
+  const el=document.getElementById('dash-chart');
+  if(!KOLS.length){el.innerHTML='<div class="empty-state" style="padding:24px"><i class="ti ti-chart-bar" aria-hidden="true"></i><p>添加 KOL 后显示评分分布</p></div>';return}
+  const bars=KOLS.slice().sort((a,b)=>b.cs-a.cs).slice(0,6);
+  el.innerHTML=`<div style="display:flex;align-items:flex-end;gap:6px;height:90px;padding:0 4px">${bars.map(k=>`
+    <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:3px">
+      <div style="font-size:9px;color:#6B7280">${k.cs}</div>
+      <div style="width:100%;border-radius:3px 3px 0 0;background:${k.csColor};height:${Math.max(k.cs*0.8,8)}px;transition:height .4s"></div>
+      <div style="font-size:9px;color:#9CA3AF;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;width:100%;text-align:center">${k.name.split(' ')[0]}</div>
+    </div>`).join('')}</div>`;
+}
+
+function renderDashAlerts(){
+  const el=document.getElementById('dash-alerts');
+  const risky=KOLS.filter(k=>k.flags.length>0);
+  if(!risky.length){el.innerHTML='<div class="empty-state" style="padding:24px"><i class="ti ti-shield-check" aria-hidden="true"></i><p>暂无风险预警</p></div>';return}
+  el.innerHTML=risky.map(k=>`<div style="display:flex;align-items:flex-start;gap:9px;padding:8px 0;border-bottom:0.5px solid #F1F5F9">
+    <div style="width:7px;height:7px;border-radius:50%;background:#DC2626;margin-top:4px;flex-shrink:0"></div>
+    <div><div style="font-size:12px;font-weight:500;color:#111827">${k.name}</div><div style="font-size:10px;color:#9CA3AF">${k.flags.slice(0,2).join(' · ')}</div></div>
+    <span class="badge b-red" style="margin-left:auto;flex-shrink:0">${k.rl}</span>
+  </div>`).join('');
+}
+
+function renderDashTable(){
+  const el=document.getElementById('dash-table');
+  if(!KOLS.length){el.innerHTML='<div class="empty-state"><i class="ti ti-users" aria-hidden="true"></i><p>还没有 KOL 数据<br>点击右上角「添加 KOL」开始录入</p><button class="tb-btn teal" onclick="openAddKOL()"><i class="ti ti-plus" style="font-size:13px" aria-hidden="true"></i>添加 KOL</button></div>';return}
+  const sorted=KOLS.slice().sort((a,b)=>b.cs-a.cs);
+  el.innerHTML=`<table class="data-table"><thead><tr><th>KOL</th><th>平台</th><th>市场</th><th>商业价值分</th><th>风险分</th><th>评级</th><th>状态</th></tr></thead><tbody>${sorted.map(k=>`<tr>
+    <td><b>${k.name}</b><br><span style="font-size:10px;color:#9CA3AF">${k.handle}</span></td>
+    <td>${k.platform}</td><td>${{DE:'🇩🇪',GB:'🇬🇧',FR:'🇫🇷',MULTI:'🌍'}[k.country]||''}${k.country}</td>
+    <td style="font-weight:600;color:${k.csColor}">${k.cs}</td>
+    <td style="font-weight:600;color:${k.rsColor}">${k.rs}</td>
+    <td><span class="badge ${k.csClass}">${k.grade}</span></td>
+    <td><span class="badge ${k.rsClass}">${k.rl}</span></td>
+  </tr>`).join('')}</tbody></table>`;
+}
+
+/* ═══ COLLAB PAGE ═══ */
+const STAGE_NAMES=['KOL识别','资质评估','比稿议价','合同签订','投放执行','效果归因','续约/归档'];
+function renderCollabPage(){
+  for(let i=0;i<7;i++)document.getElementById('sn'+i).textContent=KOLS.filter(k=>k.stage===i).length;
+  renderStage(currentStageIdx);
+}
+function selectStage(idx,el){
+  document.querySelectorAll('.stage-item').forEach(s=>s.classList.remove('active'));
+  el.classList.add('active');currentStageIdx=idx;renderStage(idx);
+}
+function renderStage(idx){
+  document.getElementById('stage-title').textContent=STAGE_NAMES[idx]+' 阶段';
+  const list=KOLS.filter(k=>k.stage===idx);
+  const el=document.getElementById('collab-list');
+  if(!list.length){el.innerHTML='<div class="empty-state"><i class="ti ti-inbox" aria-hidden="true"></i><p>当前阶段暂无 KOL</p></div>';return}
+  el.innerHTML=list.map(k=>`<div class="deal-item">
+    <div class="deal-avatar" style="background:#E0F2FE;color:#0369A1">
+      ${k.thumb?`<img src="${k.thumb}" alt="${k.name}" onerror="this.style.display='none';this.parentNode.textContent='${initials(k.name)}'">`:initials(k.name)}
+    </div>
+    <div><div style="font-size:12px;font-weight:500">${k.name} <span style="font-size:10px;color:#9CA3AF">${k.handle}</span></div>
+    <div style="font-size:10px;color:#6B7280">${{DE:'🇩🇩',GB:'🇬🇧',FR:'🇫🇷',MULTI:'🌍'}[k.country]||''}${k.country} · ${k.platform} · ${k.niche}</div></div>
+    <div style="margin-left:auto;display:flex;align-items:center;gap:8px;flex-shrink:0">
+      <div style="text-align:center"><div style="font-size:9px;color:#9CA3AF">商业</div><div style="font-size:12px;font-weight:600;color:${k.csColor}">${k.cs}</div></div>
+      <div style="text-align:center"><div style="font-size:9px;color:#9CA3AF">风险</div><div style="font-size:12px;font-weight:600;color:${k.rsColor}">${k.rs}</div></div>
+      ${k.flags.length?`<span class="badge b-red" style="font-size:9px">⚠ 预警</span>`:`<span class="badge ${k.rsClass}">${k.rl}</span>`}
+      ${idx<6?`<button class="tb-btn teal" style="font-size:11px;padding:4px 9px" onclick="advanceKOL('${k.id}')">推进 →</button>`:''}
+    </div>
+  </div>`).join('');
+}
+function advanceKOL(id){
+  const k=KOLS.find(x=>x.id===id);
+  if(k&&k.stage<6){
+    k.stage++;
+    persist();
+    if (SB_URL && SB_KEY) pushToCloud(k).then(() => setSyncBadge('ok'));
+    renderCollabPage();
+    alert(k.name+' 已推进至「'+STAGE_NAMES[k.stage]+'」阶段');
+  }
+}
+
+/* ═══ MODAL ═══ */
+let currentMTab=0;
+function openAddKOL(){
+  YT_FETCHED=null;
+  document.getElementById('add-kol-overlay').classList.add('open');
+  document.getElementById('modal-apikey').value=API_KEY;
+  document.getElementById('yt-status').className='yt-status';document.getElementById('yt-status').innerHTML='';
+  document.getElementById('yt-preview-card').style.display='none';
+  document.getElementById('score-preview').style.display='none';
+  document.querySelectorAll('#add-kol-overlay input[type=number],#add-kol-overlay input[type=text]').forEach(el=>el.value='');
+  document.querySelectorAll('#add-kol-overlay select').forEach(el=>el.selectedIndex=0);
+  document.getElementById('yt-url-input').value='';
+  switchMTab(0,document.querySelector('.m-tab'));
+}
+function closeAddKOL(){document.getElementById('add-kol-overlay').classList.remove('open')}
+function switchMTab(idx,el){
+  document.querySelectorAll('.m-tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  for(let i=0;i<3;i++)document.getElementById('m-tab-'+i).style.display=i===idx?'':'none';
+  currentMTab=idx;
+}
+function showKOLDetail(id){const k=KOLS.find(x=>x.id===id);if(k)alert(k.name+'\n商业价值: '+k.cs+'分（'+k.grade+'）\n风险评分: '+k.rs+'分（'+k.rl+'）\n当前阶段: '+STAGE_NAMES[k.stage]+(k.flags.length?'\n⚠ 预警: '+k.flags.join(' / '):''))}
+
+/* ═══ SETTINGS ═══ */
+function saveApiKey(){
+  API_KEY=document.getElementById('settings-apikey').value.trim();
+  localStorage.setItem('kol_yt_api_key',API_KEY);
+  document.getElementById('settings-key-status').textContent=API_KEY?'✓ API 密钥已保存到本地':'API 密钥已清空';
+}
+function toggleApiKeyVisibility(){const el=document.getElementById('settings-apikey');el.type=el.type==='password'?'text':'password'}
+
+/* ═══ EXPORT ═══ */
+function exportData(){
+  const data={kols:KOLS,exportedAt:new Date().toISOString()};
+  const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='kol_platform_data.json';a.click();
+}
+
+/* ═══ NAVIGATION ═══ */
+function navigate(page,el){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById('page-'+page).classList.add('active');
+  if(el)el.classList.add('active');
+  const titles={dashboard:'数据大屏',kol:'KOL 列表',collab:'合作管理',contracts:'合同管理',results:'效果复盘',settings:'系统设置'};
+  document.getElementById('topbar-title').textContent=titles[page]||page;
+  if(page==='kol')renderKOLPage();
+  if(page==='collab')renderCollabPage();
+  if(page==='settings'){
+    const k=localStorage.getItem('kol_yt_api_key')||'';
+    document.getElementById('settings-apikey').value=k;
+    document.getElementById('settings-key-status').textContent=k?'✓ 已有保存的 API 密钥':'';
+    document.getElementById('sb-url').value = SB_URL;
+    document.getElementById('sb-key').value = SB_KEY;
+    setSyncBadge(SB_URL && SB_KEY ? 'ok' : 'offline');
+    // Load C-end config
+    if(document.getElementById('cend-url')) document.getElementById('cend-url').value = CEND_URL;
+    if(document.getElementById('cend-token')) document.getElementById('cend-token').value = CEND_TOKEN;
+    if(document.getElementById('cend-brand-cfg')) document.getElementById('cend-brand-cfg').value = CEND_BRAND;
+    if(document.getElementById('cend-mode')) document.getElementById('cend-mode').value = CEND_MODE;
+    const badge = document.getElementById('cend-badge');
+    if(badge){ badge.textContent = CEND_MODE==='demo'?'演示模式': (CEND_URL?'生产模式':'未配置'); }
+  }
+}
+
+/* ═══ BATCH IMPORT ═══ */
+let BATCH_PENDING = [];
+
+// Column index maps (0-based) matching the generated Excel template
+const COMM_COLS = ['name','country','niche','brandType','geo','lang','autoInterest','age','income',
+  'focus','depth','credibility','err','completion','commentQuality','shareSave',
+  'vocDepth','vocNeg','vocHistory','cpm','benchCpm','reuse','exclusive',
+  'brandTone','histTone','styleConsist','fulfill','briefCoop','dataReady'];
+
+const RISK_COLS = ['name','country','incident','falsead','sentimentRange','adlabel','penalty','compliance',
+  'competitor','compcontentpct','complevel','fakepct','spikegrowth','templatecomment',
+  'gdpr','datause','minorpct','agesuit','exaggerate','adas','techaccuracy','latedelete','briefreject'];
+
+function batchImport(file) {
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const wb = XLSX.read(e.target.result, {type:'array'});
+
+      // Read commercial sheet (first sheet or named)
+      let commSheet = wb.Sheets[wb.SheetNames[0]];
+      for (const n of wb.SheetNames) {
+        if (n.includes('商业') || n.includes('commercial') || n.toLowerCase().includes('value')) {
+          commSheet = wb.Sheets[n]; break;
+        }
+      }
+      const commRows = XLSX.utils.sheet_to_json(commSheet, {header:1, defval:''});
+
+      // Read risk sheet if exists
+      let riskMap = {};
+      for (const n of wb.SheetNames) {
+        if (n.includes('风险') || n.toLowerCase().includes('risk')) {
+          const riskRows = XLSX.utils.sheet_to_json(wb.Sheets[n], {header:1, defval:''});
+          riskRows.slice(1).forEach(row => {
+            if (!row[0]) return;
+            const d = {};
+            RISK_COLS.forEach((k,i) => d[k] = String(row[i]||'').trim());
+            riskMap[d.name] = d;
+          });
+          break;
+        }
+      }
+
+      // Parse commercial rows (skip header)
+      const dataRows = commRows.slice(1).filter(r => r[0]);
+      BATCH_PENDING = dataRows.map(row => {
+        const d = {};
+        COMM_COLS.forEach((k,i) => d[k] = row[i] !== undefined && row[i] !== null ? row[i] : '');
+        // Clean up
+        d.name       = String(d.name||'').trim();
+        d.country    = String(d.country||'DE').trim();
+        d.niche      = String(d.niche||'review').trim();
+        d.brandType  = String(d.brandType||'ev-brand').trim();
+        d.geo        = parseFloat(d.geo)||0;
+        d.lang       = parseInt(d.lang)||1;
+        d.autoInterest = parseFloat(d.autoInterest)||50;
+        d.age        = parseFloat(d.age)||50;
+        d.income     = String(d.income||'mid').trim();
+        d.focus      = parseFloat(d.focus)||50;
+        d.depth      = String(d.depth||'mid').trim();
+        d.credibility= String(d.credibility||'mid').trim();
+        d.err        = String(d.err).includes('API') ? 0 : parseFloat(d.err)||0;
+        d.completion = parseFloat(d.completion)||40;
+        d.commentQuality = String(d.commentQuality||'mid').trim();
+        d.shareSave  = parseFloat(d.shareSave)||10;
+        d.vocDepth   = String(d.vocDepth||'mid').trim();
+        d.vocNeg     = String(d.vocNeg||'mid').trim();
+        d.vocHistory = String(d.vocHistory||'sometimes').trim();
+        d.cpm        = parseFloat(d.cpm)||20;
+        d.benchCpm   = parseFloat(d.benchCpm)||20;
+        d.reuse      = String(d.reuse||'limited').trim();
+        d.exclusive  = String(d.exclusive||'soft').trim();
+        d.brandTone  = String(d.brandTone||'neutral').trim();
+        d.histTone   = String(d.histTone||'neutral').trim();
+        d.styleConsist = String(d.styleConsist||'mid').trim();
+        d.fulfill    = parseFloat(d.fulfill)||80;
+        d.briefCoop  = String(d.briefCoop||'mid').trim();
+        d.dataReady  = String(d.dataReady||'passive').trim();
+        // Merge risk data if available
+        if (riskMap[d.name]) {
+          const r = riskMap[d.name];
+          d.incident = r.incident; d.falsead = r.falsead;
+          d.adlabel = r.adlabel; d.penalty = r.penalty; d.compliance = r.compliance;
+          d.competitor = r.competitor; d.compcontentpct = parseFloat(r.compcontentpct)||0;
+          d.complevel = r.complevel; d.fakepct = parseFloat(r.fakepct)||10;
+          d.spikegrowth = r.spikegrowth; d.templatecomment = r.templatecomment;
+          d.gdpr = r.gdpr; d.datause = r.datause;
+          d.minorpct = parseFloat(r.minorpct)||15; d.agesuit = r.agesuit;
+          d.exaggerate = r.exaggerate; d.adas = r.adas; d.techaccuracy = r.techaccuracy;
+          d.latedelete = r.latedelete; d.briefreject = r.briefreject;
+        }
+        return d;
+      }).filter(d => d.name);
+
+      // Show preview
+      const existingNames = new Set(KOLS.map(k => k.name));
+      const newOnes  = BATCH_PENDING.filter(d => !existingNames.has(d.name));
+      const skipOnes = BATCH_PENDING.filter(d =>  existingNames.has(d.name));
+
+      const previewEl = document.getElementById('batch-preview');
+      previewEl.innerHTML = `
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:14px">
+          <div style="background:#F0FDFA;border:0.5px solid rgba(13,148,136,.25);border-radius:7px;padding:12px;text-align:center">
+            <div style="font-size:22px;font-weight:600;color:#0D9488">${BATCH_PENDING.length}</div>
+            <div style="font-size:11px;color:#6B7280;margin-top:3px">总行数</div>
+          </div>
+          <div style="background:#ECFDF5;border:0.5px solid rgba(4,120,87,.25);border-radius:7px;padding:12px;text-align:center">
+            <div style="font-size:22px;font-weight:600;color:#047857">${newOnes.length}</div>
+            <div style="font-size:11px;color:#6B7280;margin-top:3px">将导入</div>
+          </div>
+          <div style="background:#F8FAFC;border:0.5px solid #E2E8F0;border-radius:7px;padding:12px;text-align:center">
+            <div style="font-size:22px;font-weight:600;color:#9CA3AF">${skipOnes.length}</div>
+            <div style="font-size:11px;color:#6B7280;margin-top:3px">重名跳过</div>
+          </div>
+        </div>
+        <div style="max-height:220px;overflow-y:auto;border:0.5px solid #E2E8F0;border-radius:7px;font-size:11px">
+          <div style="display:grid;grid-template-columns:1fr 60px 60px 60px 60px;gap:4px;padding:7px 10px;background:#F8FAFC;font-weight:500;color:#6B7280;border-bottom:0.5px solid #E2E8F0">
+            <span>KOL 名称</span><span style="text-align:center">市场</span><span style="text-align:center">商业分</span><span style="text-align:center">风险分</span><span style="text-align:center">状态</span>
+          </div>
+          ${newOnes.slice(0,30).map(d => {
+            const cs = calcCommercial(d);
+            const rs = calcRisk(d);
+            const cg = gradeCS(cs.total);
+            const rg = gradeRS(rs.total);
+            return `<div style="display:grid;grid-template-columns:1fr 60px 60px 60px 60px;gap:4px;padding:6px 10px;border-bottom:0.5px solid #F1F5F9;align-items:center">
+              <span style="font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${d.name}</span>
+              <span style="text-align:center;color:#6B7280">${d.country}</span>
+              <span style="text-align:center;font-weight:600;color:${cg.color}">${cs.total}</span>
+              <span style="text-align:center;font-weight:600;color:${rg.color}">${rs.total}</span>
+              <span style="text-align:center"><span style="font-size:9px;padding:1px 5px;border-radius:10px;background:#ECFDF5;color:#047857;border:0.5px solid rgba(4,120,87,.25)">新增</span></span>
+            </div>`;
+          }).join('')}
+          ${newOnes.length > 30 ? `<div style="padding:8px 10px;color:#9CA3AF;text-align:center">…还有 ${newOnes.length-30} 个</div>`:''}
+        </div>
+        ${skipOnes.length ? `<div style="margin-top:8px;font-size:11px;color:#9CA3AF">跳过（已存在）：${skipOnes.map(d=>d.name).join('、')}</div>`:''}
+      `;
+
+      document.getElementById('batch-confirm-btn').disabled = newOnes.length === 0;
+      document.getElementById('batch-overlay').classList.add('open');
+    } catch(err) {
+      alert('Excel 解析失败：' + err.message + '\n请确认文件格式正确，第一行为标题行。');
+    }
+  };
+  reader.readAsArrayBuffer(file);
+  // Reset input so same file can be re-selected
+  document.getElementById('batch-file-input').value = '';
+}
+
+function confirmBatchImport() {
+  const existingNames = new Set(KOLS.map(k => k.name));
+  let added = 0;
+  BATCH_PENDING.forEach(d => {
+    if (existingNames.has(d.name)) return;
+    const cs = calcCommercial(d);
+    const rs = calcRisk(d);
+    const cg = gradeCS(cs.total);
+    const rg = gradeRS(rs.total);
+    KOLS.push({
+      id: Date.now().toString() + Math.random().toString(36).slice(2,6),
+      name: d.name, handle: d.handle || ('@'+d.name.replace(/\s+/g,'')),
+      country: d.country, platform: d.platform || 'YouTube', niche: d.niche,
+      followers: '—', thumb: '',
+      data: d, cs: cs.total, rs: rs.total,
+      grade: cg.g, rl: rg.g,
+      csColor: cg.color, rsColor: rg.color,
+      csClass: cg.cls, rsClass: rg.cls,
+      flags: rs.flags,
+      stage: 0, status: '筛选中',
+      addedAt: new Date().toLocaleDateString('zh-CN'),
+    });
+    existingNames.add(d.name);
+    added++;
+  });
+  persist();
+  closeBatch();
+  updateDashboard();
+  renderKOLPage();
+  renderCollabPage();
+  navigate('kol', document.querySelectorAll('.nav-item')[1]);
+  setTimeout(() => alert(`✅ 成功导入 ${added} 个 KOL！\n\n提示：ERR% 字段标注为"← YouTube API"的已默认为 0，可在 KOL 列表中逐个通过 YouTube API 更新实际互动率。`), 100);
+}
+
+function closeBatch() {
+  document.getElementById('batch-overlay').classList.remove('open');
+  BATCH_PENDING = [];
+}
+
+/* ═══ C端情感API集成 (§4.3 + §4.4) ═══ */
+let CEND_URL   = localStorage.getItem('kol_cend_url')   || '';
+let CEND_TOKEN = localStorage.getItem('kol_cend_token') || '';
+let CEND_BRAND = localStorage.getItem('kol_cend_brand') || 'BYD';
+let CEND_MODE  = localStorage.getItem('kol_cend_mode')  || 'demo';
+
+// 汽车相关话题关键词（用于判断vocDepth）
+const AUTO_KEYWORDS = ['续航','充电','电池','制动','刹车','车机','转向','悬挂','胎噪','NVH',
+  'OTA','电机','热管理','冬季','高速','能耗','座椅','内饰','空调','经销商','售后','维修','保险'];
+
+// 技术声明风险关键词（用于自动填入r-exaggerate）
+const RISK_KEYWORDS = ['续航虚标','里程虚假','自动驾驶','FSD','NOA','自主驾驶','零排放','全自动'];
+
+function setCEndStatus(type, msg) {
+  const el = document.getElementById('cend-status');
+  if (!el) return;
+  const colors = { loading:'#6366F1', success:'#047857', error:'#DC2626', warn:'#D97706' };
+  el.style.color = colors[type] || '#6B7280';
+  el.innerHTML = msg;
+}
+
+function setCEndPreview(topics, attitude) {
+  const el = document.getElementById('cend-preview');
+  if (!el) return;
+  const topicHtml = topics.slice(0, 5).map(t => {
+    const color = t.trend === '上升' ? '#DC2626' : t.trend === '下降' ? '#047857' : '#D97706';
+    const arrow = t.trend === '上升' ? '↑' : t.trend === '下降' ? '↓' : '→';
+    return `<span style="font-size:10px;padding:2px 7px;border-radius:20px;background:#FEF2F2;color:${color};border:0.5px solid ${color}44;margin:2px;display:inline-block">${t.name} ${arrow}${t.frequency}</span>`;
+  }).join('');
+
+  const posColor = attitude.positive > 0.6 ? '#047857' : attitude.positive > 0.4 ? '#D97706' : '#DC2626';
+  el.style.display = '';
+  el.innerHTML = `
+    <div style="background:#fff;border:0.5px solid rgba(99,102,241,.2);border-radius:6px;padding:10px;margin-top:6px">
+      <div style="font-size:10px;font-weight:500;color:#6366F1;margin-bottom:6px">C端返回摘要</div>
+      <div style="display:flex;gap:12px;margin-bottom:6px">
+        <div><div style="font-size:9px;color:#9CA3AF">品牌态度</div><div style="font-size:13px;font-weight:600;color:${posColor}">${attitude.attitude}</div></div>
+        <div><div style="font-size:9px;color:#9CA3AF">正面占比</div><div style="font-size:13px;font-weight:600">${Math.round((attitude.positive||0)*100)}%</div></div>
+        <div><div style="font-size:9px;color:#9CA3AF">趋势</div><div style="font-size:13px;font-weight:600">${attitude.trend||'—'}</div></div>
+        <div><div style="font-size:9px;color:#9CA3AF">信号总量</div><div style="font-size:13px;font-weight:600">${attitude.total_signals||'—'}</div></div>
+      </div>
+      <div style="font-size:10px;color:#6B7280;margin-bottom:4px">关键抱怨话题（TOP 5）</div>
+      <div>${topicHtml || '<span style="font-size:10px;color:#9CA3AF">无抱怨话题</span>'}</div>
+    </div>`;
+}
+
+// §4.3 + §4.4 返回值 → 模型字段映射
+function applyCEndData(complaints, attitude) {
+  const topics = complaints.topics || [];
+
+  // ── §4.4 品牌态度 → commentQuality + brandTone ──
+  const posRatio = attitude.positive || 0;
+  const commentQuality = posRatio > 0.60 ? 'high' : posRatio > 0.40 ? 'mid' : 'low';
+  const brandTone = attitude.attitude === '正面' ? 'match'
+                  : attitude.attitude === '负面' ? 'conflict' : 'neutral';
+  setField('f-comment',   commentQuality);
+  setField('f-brandtone', brandTone);
+
+  // ── §4.3 关键抱怨 → vocDepth + vocNeg + vocHistory ──
+  const autoTopics   = topics.filter(t => AUTO_KEYWORDS.some(kw => t.name.includes(kw)));
+  const vocDepth     = autoTopics.length >= 5 ? 'high' : autoTopics.length >= 2 ? 'mid' : 'low';
+  const hasRising    = topics.some(t => t.trend === '上升');
+  const vocNeg       = hasRising ? 'high' : topics.some(t => t.trend === '持平') ? 'mid' : 'low';
+  const totalSignals = complaints.total_signals || 0;
+  const vocHistory   = totalSignals > 50 ? 'yes' : totalSignals > 10 ? 'sometimes' : 'no';
+  setField('f-vocdepth',  vocDepth);
+  setField('f-vocneg',    vocNeg);
+  setField('f-vochistory',vocHistory);
+
+  // ── 风险信号检测：技术声明风险 → 自动填 r-exaggerate ──
+  const riskTopics = topics.filter(t =>
+    RISK_KEYWORDS.some(kw => t.name.includes(kw)) && t.trend === '上升'
+  );
+  if (riskTopics.length > 0) {
+    setField('r-exaggerate', 'minor');
+    setCEndStatus('warn',
+      `✓ 已填入 6 个字段 · ⚠ 检测到风险话题（${riskTopics.map(t=>t.name).join('、')}趋势上升），已自动标记技术声明风险`);
+  } else {
+    setCEndStatus('success', `✓ 已自动填入 5 个字段 · 信号总量 ${totalSignals} 条 · 无高风险话题`);
+  }
+
+  setCEndPreview(topics, attitude);
+  calcPreview();
+}
+
+function setField(id, value) {
+  const el = document.getElementById(id);
+  if (el) el.value = value;
+}
+
+// 演示模式：生成模拟的C端API响应
+function demoResponse(channel, country) {
+  // 根据频道特征生成差异化的模拟数据
+  const isEV   = channel.toLowerCase().includes('ev') || channel.toLowerCase().includes('electric');
+  const isDE   = country === 'DE';
+  const seed   = channel.length % 4;
+
+  const attitudes = ['正面', '正面', '中性', '负面'];
+  const trends    = ['改善', '持平', '恶化', '改善'];
+  const posRatios = [0.68, 0.55, 0.42, 0.38];
+
+  const evTopics = [
+    { name:'冬季续航',   frequency: 87, trend:'上升', intensityMean:0.72 },
+    { name:'充电速度',   frequency: 64, trend:'持平', intensityMean:0.58 },
+    { name:'充电桩覆盖', frequency: 52, trend:'上升', intensityMean:0.65 },
+    { name:'电池衰减',   frequency: 41, trend:'持平', intensityMean:0.61 },
+    { name:'OTA更新',    frequency: 38, trend:'改善', intensityMean:0.45 },
+    { name:'车机稳定性', frequency: 29, trend:'持平', intensityMean:0.55 },
+  ];
+  const genTopics = [
+    { name:'制动异响',   frequency: 45, trend:'持平', intensityMean:0.68 },
+    { name:'车机卡顿',   frequency: 38, trend:'上升', intensityMean:0.72 },
+    { name:'内饰质量',   frequency: 31, trend:'下降', intensityMean:0.52 },
+    { name:'经销商服务', frequency: 28, trend:'持平', intensityMean:0.58 },
+    { name:'续航表现',   frequency: 22, trend:'持平', intensityMean:0.49 },
+  ];
+
+  return {
+    complaints: {
+      topics: isEV ? evTopics : genTopics,
+      total_signals: isDE ? 148 : 92,
+    },
+    attitude: {
+      attitude: attitudes[seed],
+      trend:    trends[seed],
+      positive: posRatios[seed],
+      negative: 1 - posRatios[seed] - 0.14,
+      neutral:  0.14,
+      total_signals: isDE ? 148 : 92,
+    }
+  };
+}
+
+async function fetchCEndVOC() {
+  const channel = (document.getElementById('f-cend-channel').value || '').trim();
+  const brand   = (document.getElementById('f-cend-brand').value   || CEND_BRAND).trim();
+  const country = (document.getElementById('f-country').value      || 'DE').trim();
+
+  if (!channel) { setCEndStatus('error', '请填写触点渠道ID，例如 youtube:@autogefuehl'); return; }
+
+  setCEndStatus('loading', '<i class="ti ti-loader" style="font-size:12px;animation:spin 1s linear infinite;display:inline-block"></i> 正在从C端情感API获取数据…');
+  document.getElementById('cend-preview').style.display = 'none';
+
+  // 演示模式：不发真实请求
+  if (CEND_MODE === 'demo' || !CEND_URL || !CEND_TOKEN) {
+    await new Promise(r => setTimeout(r, 900)); // 模拟网络延迟
+    const mock = demoResponse(channel, country);
+    setCEndStatus('loading', '（演示模式 · 使用模拟数据）');
+    applyCEndData(mock.complaints, mock.attitude);
+    return;
+  }
+
+  // 生产模式：调用真实C端API
+  try {
+    const countryMap = { DE:'德国', GB:'英国', FR:'法国', MULTI:'全部' };
+    const region   = countryMap[country] || country;
+    const endDate  = new Date().toISOString().slice(0, 10);
+    const startDate= new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
+    const headers  = { 'Authorization': `Bearer ${CEND_TOKEN}`, 'Content-Type': 'application/json' };
+
+    // 并行调用 §4.3 和 §4.4
+    const [complaintsResp, attitudeResp] = await Promise.all([
+      fetch(`${CEND_URL}/complaints?` + new URLSearchParams({
+        brand, region, channel, start_date: startDate, end_date: endDate, top_n: 10
+      }), { headers }),
+      fetch(`${CEND_URL}/brand-attitude?` + new URLSearchParams({
+        brand, region, channel, start_date: startDate, end_date: endDate
+      }), { headers }),
+    ]);
+
+    if (!complaintsResp.ok) throw new Error(`§4.3 返回 ${complaintsResp.status}`);
+    if (!attitudeResp.ok)  throw new Error(`§4.4 返回 ${attitudeResp.status}`);
+
+    const complaints = await complaintsResp.json();
+    const attitude   = await attitudeResp.json();
+    applyCEndData(complaints, attitude);
+  } catch (e) {
+    setCEndStatus('error', `请求失败：${e.message} · 切换到演示模式重试`);
+  }
+}
+
+function saveCEndConfig() {
+  CEND_URL   = (document.getElementById('cend-url')?.value       || '').trim().replace(/\/$/, '');
+  CEND_TOKEN = (document.getElementById('cend-token')?.value     || '').trim();
+  CEND_BRAND = (document.getElementById('cend-brand-cfg')?.value || 'BYD').trim();
+  CEND_MODE  = (document.getElementById('cend-mode')?.value      || 'demo').trim();
+  localStorage.setItem('kol_cend_url',   CEND_URL);
+  localStorage.setItem('kol_cend_token', CEND_TOKEN);
+  localStorage.setItem('kol_cend_brand', CEND_BRAND);
+  localStorage.setItem('kol_cend_mode',  CEND_MODE);
+  const badge = document.getElementById('cend-badge');
+  const status = document.getElementById('cend-cfg-status');
+  if (CEND_MODE === 'demo') {
+    if (badge) { badge.textContent = '演示模式'; badge.style.background='#FFFBEB'; badge.style.color='#92400E'; }
+    if (status) status.innerHTML = '<span style="color:#D97706">✓ 已保存 · 演示模式（使用模拟数据）</span>';
+  } else if (CEND_URL && CEND_TOKEN) {
+    if (badge) { badge.textContent = '生产模式'; badge.style.background='#ECFDF5'; badge.style.color='#047857'; }
+    if (status) status.innerHTML = '<span style="color:#047857">✓ 已保存 · 生产模式</span>';
+  } else {
+    if (status) status.innerHTML = '<span style="color:#DC2626">⚠ 生产模式需要填写 API 地址和 Token</span>';
+  }
+}
+
+async function testCEndAPI() {
+  const status = document.getElementById('cend-cfg-status');
+  if (CEND_MODE === 'demo') {
+    if (status) status.innerHTML = '<span style="color:#6366F1">✓ 演示模式不需要测试连接，直接在添加KOL时使用即可</span>';
+    return;
+  }
+  if (!CEND_URL) { if (status) status.innerHTML = '<span style="color:#DC2626">请先填写API地址</span>'; return; }
+  if (status) status.innerHTML = '测试连接中…';
+  try {
+    const resp = await fetch(`${CEND_URL}/health`, {
+      headers: { 'Authorization': `Bearer ${CEND_TOKEN}` }
+    });
+    if (resp.ok) {
+      if (status) status.innerHTML = '<span style="color:#047857">✓ 连接成功</span>';
+    } else {
+      if (status) status.innerHTML = `<span style="color:#DC2626">连接失败：HTTP ${resp.status}</span>`;
+    }
+  } catch(e) {
+    if (status) status.innerHTML = `<span style="color:#DC2626">连接失败：${e.message}</span>`;
+  }
+}
+
+/* ═══ SUPABASE CLOUD SYNC ═══ */
+let SB_URL = localStorage.getItem('kol_sb_url') || '';
+let SB_KEY = localStorage.getItem('kol_sb_key') || '';
+
+function sbHeaders() {
+  return {
+    'Content-Type': 'application/json',
+    'apikey': SB_KEY,
+    'Authorization': 'Bearer ' + SB_KEY,
+    'Prefer': 'resolution=merge-duplicates'
+  };
+}
+
+function setSyncBadge(state) {
+  // state: 'ok' | 'error' | 'syncing' | 'offline'
+  const dot = document.getElementById('sync-dot');
+  const text = document.getElementById('sync-text');
+  const badge = document.getElementById('cloud-status-badge');
+  const syncBtn = document.getElementById('sync-btn');
+  const syncBadge = document.getElementById('sync-badge');
+  if (!SB_URL || !SB_KEY) {
+    syncBadge.style.display = 'none';
+    syncBtn.style.display = 'none';
+    if (badge) { badge.textContent = '未配置'; badge.style.background = '#F8FAFC'; badge.style.color = '#9CA3AF'; }
+    return;
+  }
+  syncBadge.style.display = 'flex';
+  syncBtn.style.display = '';
+  if (state === 'ok') {
+    dot.style.background = '#059669'; text.textContent = '已同步';
+    if (badge) { badge.textContent = '已连接'; badge.style.background = '#ECFDF5'; badge.style.color = '#047857'; }
+  } else if (state === 'syncing') {
+    dot.style.background = '#F59E0B'; text.textContent = '同步中…';
+  } else if (state === 'error') {
+    dot.style.background = '#DC2626'; text.textContent = '同步失败';
+    if (badge) { badge.textContent = '连接失败'; badge.style.background = '#FEF2F2'; badge.style.color = '#991B1B'; }
+  }
+}
+
+async function pushToCloud(kol) {
+  if (!SB_URL || !SB_KEY) return;
+  try {
+    await fetch(SB_URL + '/rest/v1/kols', {
+      method: 'POST',
+      headers: sbHeaders(),
+      body: JSON.stringify([{ id: kol.id, name: kol.name, kol_data: kol, updated_at: new Date().toISOString() }])
+    });
+  } catch(e) { console.warn('Cloud push failed:', e); }
+}
+
+async function deleteFromCloud(id) {
+  if (!SB_URL || !SB_KEY) return;
+  try {
+    await fetch(SB_URL + '/rest/v1/kols?id=eq.' + id, {
+      method: 'DELETE',
+      headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY }
+    });
+  } catch(e) { console.warn('Cloud delete failed:', e); }
+}
+
+async function pushAllToCloud() {
+  if (!SB_URL || !SB_KEY) { alert('请先配置 Supabase URL 和 Key'); return; }
+  if (!KOLS.length) { alert('本地暂无 KOL 数据'); return; }
+  setSyncBadge('syncing');
+  const sbEl = document.getElementById('sb-status');
+  if (sbEl) sbEl.textContent = '正在上传本地数据…';
+  try {
+    const resp = await fetch(SB_URL + '/rest/v1/kols', {
+      method: 'POST',
+      headers: sbHeaders(),
+      body: JSON.stringify(KOLS.map(k => ({ id: k.id, name: k.name, kol_data: k, updated_at: new Date().toISOString() })))
+    });
+    if (resp.ok) {
+      setSyncBadge('ok');
+      if (sbEl) sbEl.innerHTML = '<span style="color:#047857">✓ 成功上传 ' + KOLS.length + ' 个 KOL 到云端</span>';
+    } else {
+      const err = await resp.json();
+      throw new Error(err.message || resp.status);
+    }
+  } catch(e) {
+    setSyncBadge('error');
+    if (sbEl) sbEl.innerHTML = '<span style="color:#DC2626">✗ 上传失败：' + e.message + '</span>';
+  }
+}
+
+async function manualSync() {
+  if (!SB_URL || !SB_KEY) { navigate('settings', document.querySelectorAll('.nav-item')[5]); return; }
+  setSyncBadge('syncing');
+  const sbEl = document.getElementById('sb-status');
+  try {
+    const resp = await fetch(SB_URL + '/rest/v1/kols?select=*&order=updated_at.desc', {
+      headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY }
+    });
+    if (!resp.ok) throw new Error('HTTP ' + resp.status);
+    const rows = await resp.json();
+    if (!Array.isArray(rows)) throw new Error(rows.message || '返回格式错误');
+    const localIds = new Set(KOLS.map(k => k.id));
+    let added = 0;
+    rows.forEach(row => {
+      if (!row.kol_data) return;
+      if (localIds.has(row.id)) {
+        // Update existing (cloud wins)
+        const idx = KOLS.findIndex(k => k.id === row.id);
+        if (idx >= 0) KOLS[idx] = row.kol_data;
+      } else {
+        KOLS.push(row.kol_data);
+        localIds.add(row.id);
+        added++;
+      }
+    });
+    persist();
+    updateDashboard(); renderKOLPage(); renderCollabPage();
+    setSyncBadge('ok');
+    if (sbEl) sbEl.innerHTML = '<span style="color:#047857">✓ 同步完成，云端共 ' + rows.length + ' 个 KOL' + (added ? '，新增 ' + added + ' 个' : '') + '</span>';
+  } catch(e) {
+    setSyncBadge('error');
+    if (sbEl) sbEl.innerHTML = '<span style="color:#DC2626">✗ 同步失败：' + e.message + '</span>';
+  }
+}
+
+function saveSupabase() {
+  SB_URL = (document.getElementById('sb-url').value || '').trim().replace(/\/$/, '');
+  SB_KEY = (document.getElementById('sb-key').value || '').trim();
+  if (!SB_URL || !SB_KEY) { alert('请填写 Project URL 和 anon key'); return; }
+  localStorage.setItem('kol_sb_url', SB_URL);
+  localStorage.setItem('kol_sb_key', SB_KEY);
+  setSyncBadge('syncing');
+  manualSync();
+}
+
+function copySQL() {
+  const sql = `create table if not exists kols (
+  id text primary key,
+  name text not null,
+  kol_data jsonb not null,
+  updated_at timestamptz default now()
+);
+alter table kols enable row level security;
+create policy "team_access" on kols for all using (true) with check (true);`;
+  navigator.clipboard.writeText(sql).then(() => alert('SQL 已复制，请粘贴到 Supabase SQL Editor 中执行'));
+}
+
+function importJSON(file) {
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const data = JSON.parse(e.target.result);
+      const kols = data.kols || data;
+      if (!Array.isArray(kols)) { alert('格式错误，请导入由本平台导出的 JSON 文件'); return; }
+      const existingIds = new Set(KOLS.map(k => k.id));
+      let added = 0;
+      kols.forEach(k => { if (!existingIds.has(k.id)) { KOLS.push(k); existingIds.add(k.id); added++; } });
+      persist(); updateDashboard(); renderKOLPage(); renderCollabPage();
+      if (SB_URL && SB_KEY) pushAllToCloud();
+      alert('✅ 成功导入 ' + added + ' 个 KOL' + (SB_URL ? '，正在同步到云端…' : ''));
+    } catch(e) { alert('文件解析失败：' + e.message); }
+  };
+  reader.readAsText(file);
+  document.getElementById('import-json-input').value = '';
+}
+
+/* ═══ OVERRIDE PERSIST TO ALSO SYNC ═══ */
+const _originalPersist = persist;
+
+/* ═══ SPIN ANIMATION ═══ */
+const style=document.createElement('style');
+style.textContent='@keyframes spin{to{transform:rotate(360deg)}}';
+document.head.appendChild(style);
+
+/* ═══ INIT ═══ */
+updateDashboard();
+// Load Supabase settings
+if (SB_URL && SB_KEY) {
+  const sbUrlEl = document.getElementById('sb-url');
+  const sbKeyEl = document.getElementById('sb-key');
+  if (sbUrlEl) sbUrlEl.value = SB_URL;
+  if (sbKeyEl) sbKeyEl.value = SB_KEY;
+  setSyncBadge('syncing');
+  manualSync();
+} else {
+  setSyncBadge('offline');
+}
+</script>
+</body>
+</html>

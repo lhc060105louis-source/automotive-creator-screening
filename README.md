@@ -1,9 +1,23 @@
 # Automotive Creator Screening
 
-An automotive KOL (content creator) screening project for the United Kingdom, France, and Germany. The repository includes two complementary product forms:
+An offline-first KOL (content creator) screening and collaboration platform for automotive brands operating in the United Kingdom, France, and Germany.
 
-- A browser-based static demonstration for KOL management and standalone scoring.
-- A full, offline-first desktop collaboration application with local storage, team synchronization, automated data collection, and native packaging definitions.
+The repository contains a quick browser demonstration and a complete desktop application. Both use the same commercial-value and partnership-risk framework; the desktop application adds local persistence, multi-source collection, collaboration workflows, and optional team synchronization.
+
+## Highlights
+
+- Assess commercial value across seven weighted dimensions and partnership risk across eight.
+- Discover and enrich creator profiles from YouTube, Reddit, and TikTok.
+- Import CSV/XLSX data, export results to Excel, compare up to four creators, and manage shortlists.
+- Track contracts, execution stages, and post-campaign reviews in the desktop application.
+- Work offline with local SQLite storage, then optionally synchronize approved team data through Supabase.
+
+## Choose Your Starting Point
+
+| Product | Best for | Start command |
+| --- | --- | --- |
+| Static demonstration | Exploring the UI and scoring models without installing dependencies | `python3 -m http.server 8080` |
+| Desktop collaboration application | Local data management, collection, workflows, and optional team sync | `cd desktop-app && python3 -m venv .venv` |
 
 ## Static Demonstration
 
@@ -61,6 +75,9 @@ py -m venv .venv
 ├── tools/                                  # Standalone commercial-value and risk tools
 ├── data/                                   # 57-creator evaluation workbook
 ├── desktop-app/
+│   ├── 01_KOL合作管理平台.html ... 07_评估模型说明文稿.docx
+│   │                                        # Self-contained delivery assets used by native packaging
+│   ├── README.txt                           # Desktop delivery notes in Chinese
 │   ├── app/                                # FastAPI application, frontend modules, collectors, sync layer
 │   ├── tests/                              # Automated test suite
 │   ├── packaging/                          # macOS and Windows packaging definitions
@@ -68,7 +85,7 @@ py -m venv .venv
 │   ├── examples/                           # Desktop application sample data
 │   └── demo-screenshots/                   # Delivery screenshots
 ├── examples/real_kols_uk_de_800.csv        # Larger UK and Germany creator dataset
-└── docs/                                   # Architecture, model, UI, and project documentation
+└── docs/                                   # Architecture, scoring model, UI, and project documentation
 ```
 
 ## Data and Documentation
@@ -96,7 +113,7 @@ cd desktop-app
 .venv/bin/python -m pytest
 ```
 
-The test suite uses isolated local data and mocked external collector behavior. It does not require live YouTube, Reddit, TikTok, or Supabase credentials.
+The full desktop suite contains 225 automated tests. It uses isolated local data and mocked external collector behavior, so it does not require live YouTube, Reddit, TikTok, or Supabase credentials.
 
 ## Packaging
 
@@ -121,3 +138,7 @@ See [desktop-app/packaging/README.md](desktop-app/packaging/README.md) for signi
 ## Security
 
 Do not commit API keys, Supabase keys, access tokens, or service-role credentials. The desktop application stores configured secrets through the operating system credential manager and does not display their plaintext values in the UI. The static demonstration uses browser `localStorage` for optional configuration; clear browser storage when sharing a workstation.
+
+## Repository Hygiene
+
+Virtual environments, local databases, generated build output, test caches, and packaged installers are intentionally excluded from Git. Binary business assets are marked as binary in `.gitattributes`, keeping source-code reviews focused on meaningful changes.

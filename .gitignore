@@ -4,3 +4,12 @@ Thumbs.db
 .env
 .env.*
 !.env.example
+
+# Desktop application generated files
+desktop-app/.venv/
+desktop-app/.build/
+desktop-app/dist/
+desktop-app/.pytest_cache/
+desktop-app/**/__pycache__/
+desktop-app/**/*.pyc
+desktop-app/**/*.db

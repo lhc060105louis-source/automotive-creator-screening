@@ -1,0 +1,793 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>欧洲车企 KOL 风险评分模型 v1.0</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=DM+Serif+Display&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.8.0/dist/tabler-icons.min.css">
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#F5F0EE;--surface:#FFF;--s2:#FAF7F6;
+  --border:rgba(0,0,0,.08);--border-md:rgba(0,0,0,.13);
+  --t1:#111110;--t2:#52514E;--t3:#9E9C96;
+  --red:#B91C1C;--red-bg:#FEF2F2;--red-bd:rgba(185,28,28,.25);
+  --amber:#B45309;--amber-bg:#FFFBEB;--amber-bd:rgba(180,83,9,.25);
+  --green:#047857;--green-bg:#ECFDF5;--green-bd:rgba(4,120,87,.25);
+  --r:10px;--rsm:6px;--rlg:14px;
+}
+body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t1);font-size:14px;line-height:1.5}
+.shell{max-width:980px;margin:0 auto;padding:28px 20px 80px}
+.page-title{font-size:19px;font-weight:600;margin-bottom:4px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.page-sub{font-size:13px;color:var(--t2);margin-bottom:20px}
+.badge{font-size:11px;font-weight:500;padding:2px 9px;border-radius:20px;border:0.5px solid}
+.b-red{background:var(--red-bg);color:var(--red);border-color:var(--red-bd)}
+.b-amber{background:var(--amber-bg);color:var(--amber);border-color:var(--amber-bd)}
+
+/* notice bar */
+.notice{display:flex;gap:10px;padding:12px 16px;background:#FEF9EC;border:0.5px solid rgba(180,83,9,.3);border-radius:var(--r);margin-bottom:20px;font-size:12px;color:#78350F;line-height:1.65}
+.notice i{font-size:18px;color:var(--amber);flex-shrink:0;margin-top:1px}
+
+/* tabs */
+.tabs{display:flex;gap:4px;background:var(--s2);border:0.5px solid var(--border-md);border-radius:var(--r);padding:4px;width:fit-content;margin-bottom:20px}
+.tab{font-size:13px;padding:7px 20px;border-radius:var(--rsm);border:none;background:transparent;color:var(--t2);cursor:pointer;transition:all .15s;display:flex;align-items:center;gap:6px;font-family:inherit}
+.tab.active{background:var(--surface);color:var(--t1);font-weight:500;border:0.5px solid var(--border-md)}
+
+/* cards */
+.card{background:var(--surface);border:0.5px solid var(--border-md);border-radius:var(--rlg);overflow:hidden;margin-bottom:12px}
+.card-hd{display:flex;align-items:center;gap:8px;padding:12px 16px;border-bottom:0.5px solid var(--border);background:var(--s2)}
+.dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.card-title{font-size:13px;font-weight:500;color:var(--t1);flex:1}
+.card-body{padding:14px 16px}
+
+/* layout */
+.layout{display:grid;grid-template-columns:1fr 1fr;gap:14px;align-items:start}
+
+/* fields */
+.field{margin-bottom:12px}
+.field:last-child{margin-bottom:0}
+.field label{display:block;font-size:12px;font-weight:500;color:var(--t2);margin-bottom:4px}
+.hint{font-size:11px;color:var(--t3);margin-bottom:4px;display:block}
+.field input[type=number],.field input[type=text],.field select{width:100%;height:36px;padding:0 11px;border:0.5px solid var(--border-md);border-radius:var(--rsm);background:var(--surface);color:var(--t1);font-size:13px;font-family:inherit;outline:none;transition:border-color .15s;-moz-appearance:textfield}
+.field input:focus,.field select:focus{border-color:var(--red);box-shadow:0 0 0 3px rgba(185,28,28,.1)}
+.field input[type=number]::-webkit-outer-spin-button,.field input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none}
+.fr{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+
+/* high-risk select highlight */
+select.risk-high{border-color:var(--red)!important;background:#FEF2F2!important}
+select.risk-mid{border-color:var(--amber)!important;background:#FFFBEB!important}
+
+/* buttons */
+.btn{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-family:inherit;font-weight:500;padding:8px 16px;border-radius:var(--rsm);cursor:pointer;transition:all .15s;border:0.5px solid var(--border-md);background:var(--surface);color:var(--t1)}
+.btn:hover{background:var(--s2)}
+.btn.primary{background:#7F1D1D;color:#fff;border-color:#7F1D1D}
+.btn.primary:hover{background:#991B1B}
+.btn.ghost{border-color:transparent;color:var(--t2)}
+.btn.ghost:hover{background:var(--s2)}
+.btn-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:4px}
+
+/* output */
+.out-placeholder{padding:48px 24px;text-align:center;color:var(--t3);font-size:13px}
+.out-placeholder i{font-size:32px;display:block;margin-bottom:10px;opacity:.35}
+
+/* risk score hero */
+.risk-hero{padding:18px 16px;border-bottom:0.5px solid var(--border);display:flex;align-items:center;gap:18px}
+.risk-num{font-family:'DM Serif Display',Georgia,serif;font-size:60px;line-height:1}
+.risk-right{flex:1}
+.risk-pill{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:500;padding:4px 12px;border-radius:20px;margin-bottom:9px;border:0.5px solid}
+.bar-wrap{height:5px;background:var(--bg);border-radius:3px;overflow:hidden;margin-bottom:5px}
+.bar-fill{height:100%;border-radius:3px;transition:width .7s cubic-bezier(.4,0,.2,1)}
+.risk-cap{font-size:11px;color:var(--t3)}
+
+/* auto-flags */
+.flags-section{padding:12px 16px;border-bottom:0.5px solid var(--border);display:flex;flex-direction:column;gap:6px}
+.flag-item{display:flex;align-items:flex-start;gap:8px;padding:8px 12px;border-radius:var(--rsm);font-size:12px;line-height:1.55;border:0.5px solid}
+.flag-critical{background:#FEF2F2;color:var(--red);border-color:var(--red-bd)}
+.flag-warning{background:#FFFBEB;color:var(--amber);border-color:var(--amber-bd)}
+.flag-icon{font-size:15px;flex-shrink:0;margin-top:1px}
+
+/* dimension rows */
+.dim-row{display:flex;align-items:center;gap:10px;padding:10px 16px;border-bottom:0.5px solid var(--border)}
+.dim-row:last-child{border-bottom:none}
+.dim-name{font-size:12px;color:var(--t1);width:110px;flex-shrink:0}
+.dim-bar{flex:1;height:4px;background:var(--bg);border-radius:2px;overflow:hidden}
+.dim-bar-fill{height:100%;border-radius:2px}
+.dim-score{font-size:13px;font-weight:600;min-width:26px;text-align:right}
+.dim-weight{font-size:10px;color:var(--t3);min-width:32px;text-align:right}
+
+/* indicator detail */
+.ind-sec{padding:10px 16px;border-bottom:0.5px solid var(--border)}
+.ind-sec:last-child{border-bottom:none}
+.ind-sec-title{font-size:10px;font-weight:500;color:var(--t3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;display:flex;align-items:center;gap:5px}
+.ind-row{display:flex;align-items:center;gap:9px;padding:3px 0}
+.ind-name{font-size:11px;color:var(--t2);flex:1}
+.ind-mini{width:72px;height:3px;background:var(--bg);border-radius:2px;overflow:hidden}
+.ind-mini-fill{height:100%;border-radius:2px}
+.ind-score{font-size:11px;font-weight:500;min-width:22px;text-align:right}
+.ind-w{font-size:10px;color:var(--t3);min-width:26px;text-align:right}
+
+.formula-box{padding:10px 16px;background:var(--s2);border-top:0.5px solid var(--border);font-size:10px;color:var(--t3);font-family:'SF Mono','Fira Code',monospace;line-height:1.9}
+.formula-box strong{color:var(--t2);font-weight:500}
+
+/* upload */
+.upload-zone{border:1.5px dashed var(--border-md);border-radius:var(--r);padding:32px 20px;text-align:center;cursor:pointer;transition:all .2s;background:var(--s2)}
+.upload-zone:hover,.upload-zone.drag{border-color:var(--red);background:var(--red-bg)}
+.upload-zone i{font-size:32px;color:var(--t3);display:block;margin-bottom:8px}
+.col-list{display:flex;flex-wrap:wrap;gap:4px;margin-top:8px}
+.col-pill{font-size:10px;padding:2px 7px;border-radius:20px;background:rgba(185,28,28,.08);color:var(--red);border:0.5px solid var(--red-bd)}
+.prog-bar{height:4px;background:var(--border);border-radius:2px;overflow:hidden;margin:10px 0;display:none}
+.prog-fill{height:100%;background:var(--red);border-radius:2px;transition:width .4s}
+#file-input{display:none}
+
+/* ranking */
+.rank-hd{display:grid;grid-template-columns:36px 1fr 80px 90px repeat(8,50px);gap:4px;padding:7px 12px;font-size:10px;color:var(--t3);font-weight:500;text-transform:uppercase;letter-spacing:.04em;border-bottom:0.5px solid var(--border);background:var(--s2)}
+.rank-row{display:grid;grid-template-columns:36px 1fr 80px 90px repeat(8,50px);gap:4px;padding:10px 12px;border-bottom:0.5px solid var(--border);align-items:center;cursor:pointer;transition:background .12s}
+.rank-row:last-child{border-bottom:none}
+.rank-row:hover{background:var(--s2)}
+.rank-num{font-size:13px;font-weight:600;color:var(--t3);text-align:center}
+.rn-high{color:var(--red)}.rn-mid{color:var(--amber)}.rn-low{color:var(--green)}
+.rank-name{font-size:13px;font-weight:500}
+.rank-mkt{font-size:11px;color:var(--t2)}
+.rank-total{font-family:'DM Serif Display',serif;font-size:20px;text-align:center}
+.rank-level{font-size:11px;font-weight:500;padding:2px 8px;border-radius:20px;border:0.5px solid;text-align:center;white-space:nowrap}
+.rank-dim{text-align:center;font-size:12px;font-weight:500}
+.flag-dot{width:7px;height:7px;border-radius:50%;display:inline-block;margin-right:3px}
+
+/* modal */
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:100;align-items:center;justify-content:center;padding:20px}
+.overlay.open{display:flex}
+.modal{background:var(--surface);border-radius:var(--rlg);max-width:520px;width:100%;max-height:88vh;overflow-y:auto;border:0.5px solid var(--border-md)}
+.modal-hd{display:flex;align-items:center;gap:10px;padding:14px 18px;border-bottom:0.5px solid var(--border);position:sticky;top:0;background:var(--surface);z-index:1}
+.modal-body{padding:14px 18px}
+
+/* alert */
+.alert{padding:10px 14px;border-radius:var(--rsm);font-size:12px;margin-bottom:12px;display:none;align-items:flex-start;gap:8px}
+.alert.show{display:flex}
+.alert.error{background:var(--red-bg);color:var(--red);border:0.5px solid var(--red-bd)}
+
+@media(max-width:680px){
+  .layout{grid-template-columns:1fr}
+  .rank-hd,.rank-row{grid-template-columns:28px 1fr 60px 70px repeat(3,40px)}
+  .rank-hd span:nth-child(n+8),.rank-row>*:nth-child(n+8){display:none}
+}
+</style>
+</head>
+<body>
+<div class="shell">
+
+<div class="page-title">
+  <i class="ti ti-shield-exclamation" style="font-size:20px;color:#991B1B" aria-hidden="true"></i>
+  欧洲车企 KOL 风险评分模型
+  <span class="badge b-amber">v1.0</span>
+  <span class="badge b-red">独立风险评估</span>
+</div>
+<div class="page-sub">配合「商业价值评估模型 v3.0」使用 · 分数越高代表风险越大 · 高风险自动触发法务/品牌复核预警</div>
+
+<div class="notice">
+  <i class="ti ti-alert-triangle" aria-hidden="true"></i>
+  <div>本模型评估的是合作风险，<strong>分数越高 = 风险越大</strong>，与商业价值模型的方向相反。建议将两个模型的输出结合使用：优先合作「商业价值高 + 风险低」的 KOL，对「高价值但中高风险」的 KOL 通过合同条款加强约束，对「高风险」KOL 进入法务复核流程。</div>
+</div>
+
+<div class="tabs">
+  <button class="tab active" onclick="switchTab('upload',this)"><i class="ti ti-table-import" style="font-size:15px" aria-hidden="true"></i>批量上传</button>
+  <button class="tab" onclick="switchTab('manual',this)"><i class="ti ti-forms" style="font-size:15px" aria-hidden="true"></i>手动录入</button>
+</div>
+
+<!-- ══════ 批量上传 ══════ -->
+<div id="tab-upload">
+  <div class="card">
+    <div style="display:flex;align-items:flex-start;gap:12px;padding:12px 16px;background:var(--red-bg);border-bottom:0.5px solid var(--red-bd)">
+      <i class="ti ti-info-circle" style="font-size:18px;color:var(--red);flex-shrink:0;margin-top:2px" aria-hidden="true"></i>
+      <div>
+        <p style="font-size:12px;color:var(--red);line-height:1.65"><strong>下载模板，按列填写风险数据后上传。</strong> 共 <strong>25 列</strong>，选项型字段请严格按括号内英文代码填写。</p>
+        <div class="col-list">
+          <span class="col-pill">KOL名称</span><span class="col-pill">主要市场</span>
+          <span class="col-pill">重大负面事件(none/minor/serious/critical)</span><span class="col-pill">虚假宣传记录(none/minor/serious)</span><span class="col-pill">舆情传播范围(none/local/wide)</span>
+          <span class="col-pill">广告标注习惯(always/sometimes/never)</span><span class="col-pill">平台监管处罚(none/warning/penalty)</span><span class="col-pill">合规意愿(high/mid/low)</span>
+          <span class="col-pill">竞品绑定状态(none/nonexclusive/exclusive/ambassador)</span><span class="col-pill">近期竞品内容%</span><span class="col-pill">竞品品牌级别(none/indirect/direct)</span>
+          <span class="col-pill">僵尸粉比例%</span><span class="col-pill">粉丝暴涨记录(none/once/multiple)</span><span class="col-pill">评论模板化(normal/some/heavy)</span>
+          <span class="col-pill">GDPR违规记录(none/minor/serious)</span><span class="col-pill">数据使用规范(compliant/unclear/violation)</span>
+          <span class="col-pill">未成年受众%</span><span class="col-pill">内容适龄性(suitable/partial/unsuitable)</span>
+          <span class="col-pill">夸大声明记录(none/minor/serious)</span><span class="col-pill">自动驾驶声明风险(none/cautious/exaggerated)</span>
+          <span class="col-pill">历史延期删帖(none/occasional/frequent)</span><span class="col-pill">Brief拒绝(cooperative/friction/refuse)</span>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <button class="btn primary" onclick="downloadTemplate()">
+        <i class="ti ti-download" style="font-size:15px" aria-hidden="true"></i>下载 Excel 模板
+      </button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-hd"><div class="dot" style="background:var(--red)"></div><span class="card-title">上传 Excel 文件</span></div>
+    <div class="card-body">
+      <div class="upload-zone" id="upload-zone" onclick="document.getElementById('file-input').click()" ondragover="event.preventDefault();this.classList.add('drag')" ondragleave="this.classList.remove('drag')" ondrop="handleDrop(event)">
+        <i class="ti ti-file-spreadsheet" aria-hidden="true"></i>
+        <p>点击选择文件，或将 Excel 拖拽至此</p>
+        <small>支持 .xlsx / .xls</small>
+      </div>
+      <input type="file" id="file-input" accept=".xlsx,.xls" onchange="handleFile(this.files[0])">
+      <div class="prog-bar" id="prog-wrap"><div class="prog-fill" id="prog-fill" style="width:0%"></div></div>
+      <div id="upload-status" style="font-size:12px;color:var(--t3);margin-top:6px"></div>
+    </div>
+  </div>
+
+  <div id="ranking-output" style="display:none">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:8px">
+      <div style="font-size:14px;font-weight:500" id="ranking-title">风险排名（由高到低）</div>
+      <button class="btn ghost" onclick="exportRanking()"><i class="ti ti-table-export" style="font-size:14px" aria-hidden="true"></i>导出风险报告</button>
+    </div>
+    <div class="card">
+      <div class="rank-hd">
+        <span style="text-align:center">排名</span><span>KOL</span>
+        <span style="text-align:center">风险分</span><span style="text-align:center">风险等级</span>
+        <span style="text-align:center">舆情</span><span style="text-align:center">合规</span>
+        <span style="text-align:center">竞品</span><span style="text-align:center">流量</span>
+        <span style="text-align:center">隐私</span><span style="text-align:center">受众</span>
+        <span style="text-align:center">声明</span><span style="text-align:center">执行</span>
+      </div>
+      <div id="ranking-rows"></div>
+    </div>
+    <div style="font-size:11px;color:var(--t3);margin-top:5px">点击任意行查看完整风险明细与预警标记</div>
+  </div>
+</div>
+
+<!-- ══════ 手动录入 ══════ -->
+<div id="tab-manual" style="display:none">
+<div class="alert error" id="alert-box"><i class="ti ti-alert-circle" style="font-size:16px;flex-shrink:0;margin-top:1px" aria-hidden="true"></i><span id="alert-msg"></span></div>
+
+<div class="layout">
+<div>
+
+  <!-- 基本信息 -->
+  <div class="card">
+    <div class="card-hd"><div class="dot" style="background:var(--t3)"></div><span class="card-title">基本信息</span></div>
+    <div class="card-body">
+      <div class="fr">
+        <div class="field"><label>KOL 名称</label><input type="text" id="m-name"></div>
+        <div class="field"><label>主要市场</label><select id="m-country"><option value="DE">🇩🇪 德国</option><option value="GB">🇬🇧 英国</option><option value="FR">🇫🇷 法国</option><option value="MULTI">多国</option></select></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 1. 历史负面舆情 -->
+  <div class="card">
+    <div class="card-hd"><div class="dot" style="background:#7F1D1D"></div><span class="card-title">① 历史负面舆情</span><span style="font-size:11px;color:var(--t3)">权重 20%</span></div>
+    <div class="card-body">
+      <div class="field"><label>重大负面事件记录</label><span class="hint">⚠ 选「极严重」将自动触发高风险标记</span>
+        <select id="m-incident" onchange="highlightRisk(this)">
+          <option value="none">无记录</option>
+          <option value="minor">轻微（已处理，影响有限）</option>
+          <option value="serious">严重（处理中，有一定影响）</option>
+          <option value="critical">极严重（司法处罚/平台封号/重大公关危机）</option>
+        </select>
+      </div>
+      <div class="fr">
+        <div class="field"><label>虚假宣传投诉记录</label><span class="hint">⚠「严重」触发预警</span>
+          <select id="m-falsead" onchange="highlightRisk(this)"><option value="none">无记录</option><option value="minor">有轻微投诉（已处理）</option><option value="serious">有严重记录（监管介入）</option></select>
+        </div>
+        <div class="field"><label>负面舆情传播范围</label>
+          <select id="m-sentiment"><option value="none">无负面舆情</option><option value="local">局部小范围</option><option value="wide">大范围传播</option></select>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. 广告披露合规 -->
+  <div class="card">
+    <div class="card-hd"><div class="dot" style="background:#92400E"></div><span class="card-title">② 广告披露合规风险</span><span style="font-size:11px;color:var(--t3)">权重 15%</span></div>
+    <div class="card-body">
+      <div class="field"><label>广告标注习惯</label><span class="hint">欧盟要求标注 #ad / #Werbung / paid partnership</span><span class="hint">⚠「从不标注」触发高风险</span>
+        <select id="m-adlabel" onchange="highlightRisk(this)"><option value="always">一贯规范标注</option><option value="sometimes">偶尔遗漏</option><option value="never">从不标注</option></select>
+      </div>
+      <div class="fr">
+        <div class="field"><label>平台/监管处罚记录</label>
+          <select id="m-penalty"><option value="none">无处罚记录</option><option value="warning">有警告记录</option><option value="penalty">有正式处罚</option></select>
+        </div>
+        <div class="field"><label>主动合规意愿</label>
+          <select id="m-compliance"><option value="high">高（积极配合标注要求）</option><option value="mid">中（需要提醒）</option><option value="low">低（排斥合规要求）</option></select>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. 竞品冲突 -->
+  <div class="card">
+    <div class="card-hd"><div class="dot" style="background:#1E3A8A"></div><span class="card-title">③ 竞品冲突</span><span style="font-size:11px;color:var(--t3)">权重 15%</span></div>
+    <div class="card-body">
+      <div class="field"><label>当前竞品绑定状态</label><span class="hint">竞品含：Tesla、VW、BMW、Kia、Hyundai 等</span><span class="hint">⚠「品牌大使级」触发高风险</span>
+        <select id="m-competitor" onchange="highlightRisk(this)"><option value="none">无竞品合作</option><option value="nonexclusive">有非排他合作</option><option value="exclusive">有排他合作</option><option value="ambassador">品牌大使级（深度绑定）</option></select>
+      </div>
+      <div class="fr">
+        <div class="field"><label>近3个月竞品内容占比 %</label>
+          <input type="number" id="m-compcontentpct" min="0" max="100">
+        </div>
+        <div class="field"><label>竞品品牌级别</label>
+          <select id="m-complevel"><option value="none">无竞品</option><option value="indirect">间接竞品（非汽车类）</option><option value="direct">直接竞品（汽车品牌）</option></select>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 4. 虚假流量 -->
+  <div class="card">
+    <div class="card-hd"><div class="dot" style="background:#065F46"></div><span class="card-title">④ 虚假流量风险</span><span style="font-size:11px;color:var(--t3)">权重 15%</span></div>
+    <div class="card-body">
+      <div class="fr">
+        <div class="field"><label>僵尸粉检测比例 %</label><span class="hint">⚠ 超过 30% 触发预警，超过 40% 触发高风险</span>
+          <input type="number" id="m-fakepct" min="0" max="100">
+        </div>
+        <div class="field"><label>粉丝暴涨异常记录</label>
+          <select id="m-spikegrowth"><option value="none">无异常增长</option><option value="once">有一次性暴涨</option><option value="multiple">多次异常增长</option></select>
+        </div>
+      </div>
+      <div class="field"><label>评论模板化程度</label>
+        <select id="m-templatecomment"><option value="normal">正常（评论内容多样真实）</option><option value="some">偶有模板评论（少量）</option><option value="heavy">大量模板化/机器人评论</option></select>
+      </div>
+    </div>
+  </div>
+
+  <!-- 5. 数据与隐私 -->
+  <div class="card">
+    <div class="card-hd"><div class="dot" style="background:#4C1D95"></div><span class="card-title">⑤ 数据与隐私风险</span><span style="font-size:11px;color:var(--t3)">权重 10%</span></div>
+    <div class="card-body">
+      <div class="fr">
+        <div class="field"><label>GDPR 违规记录</label><span class="hint">⚠「严重违规」触发高风险</span>
+          <select id="m-gdpr" onchange="highlightRisk(this)"><option value="none">无违规记录</option><option value="minor">有轻微违规（已整改）</option><option value="serious">有严重违规</option></select>
+        </div>
+        <div class="field"><label>粉丝数据使用规范</label>
+          <select id="m-datause"><option value="compliant">规范（有清晰隐私政策）</option><option value="unclear">不明确</option><option value="violation">有违规使用迹象</option></select>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 6. 未成年人/敏感受众 -->
+  <div class="card">
+    <div class="card-hd"><div class="dot" style="background:#0369A1"></div><span class="card-title">⑥ 未成年人/敏感受众风险</span><span style="font-size:11px;color:var(--t3)">权重 10%</span></div>
+    <div class="card-body">
+      <div class="fr">
+        <div class="field"><label>18 岁以下受众比例 %</label><span class="hint">超过 30% 触发预警</span>
+          <input type="number" id="m-minorpct" min="0" max="100">
+        </div>
+        <div class="field"><label>内容适龄性评估</label>
+          <select id="m-agesuit"><option value="suitable">适合（内容针对成年购车人群）</option><option value="partial">部分内容存疑</option><option value="unsuitable">有明显不适合汽车广告的内容</option></select>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 7. 可持续/技术声明 -->
+  <div class="card">
+    <div class="card-hd"><div class="dot" style="background:#065F46"></div><span class="card-title">⑦ 可持续/技术声明风险</span><span style="font-size:11px;color:var(--t3)">权重 10%</span></div>
+    <div class="card-body">
+      <div class="field"><label>历史夸大声明记录</label><span class="hint">含：续航里程、零排放、充电速度等夸大表达</span>
+        <select id="m-exaggerate"><option value="none">无夸大声明记录</option><option value="minor">有轻微夸大（措辞不严谨）</option><option value="serious">有严重夸大（误导性宣传）</option></select>
+      </div>
+      <div class="fr">
+        <div class="field"><label>自动驾驶/安全能力声明</label>
+          <select id="m-adas"><option value="none">无相关内容</option><option value="cautious">有但表述谨慎</option><option value="exaggerated">有明显夸大表述</option></select>
+        </div>
+        <div class="field"><label>内容技术准确性</label>
+          <select id="m-techaccuracy"><option value="high">高（内容经过核实）</option><option value="mid">中（偶有错误）</option><option value="low">低（经常出现技术性错误）</option></select>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 8. 合作执行风险 -->
+  <div class="card">
+    <div class="card-hd"><div class="dot" style="background:#374151"></div><span class="card-title">⑧ 合作执行风险</span><span style="font-size:11px;color:var(--t3)">权重 5%</span></div>
+    <div class="card-body">
+      <div class="fr">
+        <div class="field"><label>历史延期/删帖记录</label>
+          <select id="m-latedelete"><option value="none">无记录</option><option value="occasional">偶有（1-2 次）</option><option value="frequent">频繁（影响合作质量）</option></select>
+        </div>
+        <div class="field"><label>Brief 拒绝修改记录</label>
+          <select id="m-briefreject"><option value="cooperative">配合（接受修改意见）</option><option value="friction">偶有摩擦</option><option value="refuse">经常拒绝修改</option></select>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="btn-row">
+    <button class="btn primary" onclick="calcManual()"><i class="ti ti-shield-check" style="font-size:15px" aria-hidden="true"></i>计算风险评分</button>
+    <button class="btn ghost" onclick="clearAll()"><i class="ti ti-refresh" style="font-size:15px" aria-hidden="true"></i>清空</button>
+  </div>
+
+</div><!-- /left -->
+
+<div>
+  <div class="card">
+    <div class="card-hd"><div class="dot" style="background:var(--red)"></div><span class="card-title" id="m-out-name">风险评分结果</span><span id="m-out-date" style="font-size:11px;color:var(--t3)"></span></div>
+    <div id="m-out-body"><div class="out-placeholder"><i class="ti ti-shield" aria-hidden="true"></i>填写左侧数据后<br>点击「计算风险评分」</div></div>
+  </div>
+</div>
+
+</div><!-- /layout -->
+</div><!-- /tab-manual -->
+
+<div class="overlay" id="overlay" onclick="if(event.target===this)closeModal()">
+  <div class="modal" id="modal"></div>
+</div>
+
+</div><!-- /shell -->
+
+<script>
+/* ═══ RISK DIMENSIONS ═══ */
+const DIMS=[
+  {id:'sentiment', name:'历史负面舆情',   color:'#7F1D1D', weight:.20},
+  {id:'adcompliance',name:'广告合规风险', color:'#92400E', weight:.15},
+  {id:'competitor', name:'竞品冲突',      color:'#1E3A8A', weight:.15},
+  {id:'faketraffic',name:'虚假流量',      color:'#065F46', weight:.15},
+  {id:'privacy',    name:'数据与隐私',    color:'#4C1D95', weight:.10},
+  {id:'minors',     name:'未成年受众',    color:'#0369A1', weight:.10},
+  {id:'claims',     name:'技术声明',      color:'#14532D', weight:.10},
+  {id:'execution',  name:'合作执行',      color:'#374151', weight:.05},
+];
+
+const COL_MAP=['name','country','incident','falsead','sentiment','adlabel','penalty','compliance',
+  'competitor','compcontentpct','complevel','fakepct','spikegrowth','templatecomment',
+  'gdpr','datause','minorpct','agesuit','exaggerate','adas','techaccuracy','latedelete','briefreject'];
+
+function clamp(v,a,b){return Math.min(Math.max(v,a),b)}
+
+/* select option → risk score mapping */
+function riskMap(val, map){ return map[val]||50 }
+
+/* ═══ SCORING ═══ */
+function scoreKOL(d){
+  const flags=[];
+
+  /* 1. 历史负面舆情 */
+  const incidentScore=riskMap(d.incident,{none:5,minor:35,serious:72,critical:100});
+  if(d.incident==='critical')flags.push({type:'critical',msg:'存在极严重负面事件（司法/平台封号），需法务和品牌负责人复核'});
+  const falseadScore=riskMap(d.falsead,{none:5,minor:40,serious:90});
+  if(d.falsead==='serious')flags.push({type:'critical',msg:'有严重虚假宣传记录，触发合规高风险'});
+  const sentimentScore=riskMap(d.sentiment,{none:0,local:30,wide:80});
+  const sentiment=[
+    {name:'重大负面事件',score:incidentScore,weight:40},
+    {name:'虚假宣传记录',score:falseadScore,weight:35},
+    {name:'舆情传播范围',score:sentimentScore,weight:25},
+  ];
+
+  /* 2. 广告合规 */
+  const adlabelScore=riskMap(d.adlabel,{always:5,sometimes:45,never:95});
+  if(d.adlabel==='never')flags.push({type:'critical',msg:'拒绝广告披露标注，严重违反欧盟广告法规'});
+  const penaltyScore=riskMap(d.penalty,{none:5,warning:40,penalty:85});
+  const complianceScore=riskMap(d.compliance,{high:5,mid:40,low:85});
+  const adcompliance=[
+    {name:'广告标注规范性',score:adlabelScore,weight:50},
+    {name:'平台/监管处罚',score:penaltyScore,weight:30},
+    {name:'主动合规意愿',score:complianceScore,weight:20},
+  ];
+
+  /* 3. 竞品冲突 */
+  const competitorScore=riskMap(d.competitor,{none:0,nonexclusive:30,exclusive:70,ambassador:100});
+  if(d.competitor==='ambassador')flags.push({type:'critical',msg:'当前为直接竞品品牌大使，存在重大竞品冲突风险'});
+  else if(d.competitor==='exclusive')flags.push({type:'warning',msg:'当前有竞品排他合作，需确认排他条款范围'});
+  const compcontentScore=clamp(Math.round((Number(d.compcontentpct)||0)/50*100),0,100);
+  const complevelScore=riskMap(d.complevel,{none:0,indirect:25,direct:80});
+  const competitor=[
+    {name:'竞品绑定状态',score:competitorScore,weight:50},
+    {name:'近期竞品内容占比',score:compcontentScore,weight:25},
+    {name:'竞品品牌级别',score:complevelScore,weight:25},
+  ];
+
+  /* 4. 虚假流量 */
+  const fakepct=Number(d.fakepct)||0;
+  const fakeScore=fakepct>=40?100:fakepct>=30?80:fakepct>=20?55:fakepct>=10?30:5;
+  if(fakepct>=40)flags.push({type:'critical',msg:`僵尸粉比例 ${fakepct}%，明显超过高风险阈值（40%）`});
+  else if(fakepct>=30)flags.push({type:'warning',msg:`僵尸粉比例 ${fakepct}%，超过预警阈值（30%）`});
+  const spikeScore=riskMap(d.spikegrowth,{none:5,once:50,multiple:90});
+  const templateScore=riskMap(d.templatecomment,{normal:5,some:45,heavy:90});
+  const faketraffic=[
+    {name:'僵尸粉比例',score:fakeScore,weight:45},
+    {name:'粉丝暴涨异常',score:spikeScore,weight:30},
+    {name:'评论模板化',score:templateScore,weight:25},
+  ];
+
+  /* 5. 数据与隐私 */
+  const gdprScore=riskMap(d.gdpr,{none:5,minor:40,serious:95});
+  if(d.gdpr==='serious')flags.push({type:'critical',msg:'存在严重 GDPR 违规记录，欧洲市场合规风险极高'});
+  const datauseScore=riskMap(d.datause,{compliant:5,unclear:45,violation:90});
+  const privacy=[
+    {name:'GDPR违规记录',score:gdprScore,weight:55},
+    {name:'数据使用规范',score:datauseScore,weight:45},
+  ];
+
+  /* 6. 未成年人受众 */
+  const minorpct=Number(d.minorpct)||0;
+  const minorScore=minorpct>=40?90:minorpct>=30?70:minorpct>=20?45:minorpct>=10?20:5;
+  if(minorpct>=30)flags.push({type:'warning',msg:`未成年受众占比 ${minorpct}%，超过预警阈值，需评估汽车广告合规性`});
+  const agesuitScore=riskMap(d.agesuit,{suitable:5,partial:45,unsuitable:85});
+  const minors=[
+    {name:'未成年受众比例',score:minorScore,weight:60},
+    {name:'内容适龄性',score:agesuitScore,weight:40},
+  ];
+
+  /* 7. 技术声明 */
+  const exaggerateScore=riskMap(d.exaggerate,{none:5,minor:40,serious:90});
+  if(d.exaggerate==='serious')flags.push({type:'warning',msg:'有严重夸大技术/环保声明记录，需在合同中明确技术声明边界'});
+  const adasScore=riskMap(d.adas,{none:5,cautious:30,exaggerated:85});
+  const techaccuracyScore=riskMap(d.techaccuracy,{high:5,mid:40,low:80});
+  const claims=[
+    {name:'历史夸大声明',score:exaggerateScore,weight:45},
+    {name:'自动驾驶声明风险',score:adasScore,weight:30},
+    {name:'技术内容准确性',score:techaccuracyScore,weight:25},
+  ];
+
+  /* 8. 执行风险 */
+  const latedeleteScore=riskMap(d.latedelete,{none:5,occasional:40,frequent:85});
+  const briefrejectScore=riskMap(d.briefreject,{cooperative:5,friction:45,refuse:90});
+  const execution=[
+    {name:'延期/删帖记录',score:latedeleteScore,weight:55},
+    {name:'Brief拒绝修改',score:briefrejectScore,weight:45},
+  ];
+
+  const inds=[sentiment,adcompliance,competitor,faketraffic,privacy,minors,claims,execution];
+  const dimScores=inds.map(ind=>Math.round(ind.reduce((s,i)=>s+i.score*i.weight/100,0)));
+  const total=Math.round(dimScores.reduce((s,v,i)=>s+v*DIMS[i].weight,0));
+
+  return{total,dimScores,inds,flags};
+}
+
+/* ═══ RISK LEVEL ═══ */
+function riskLevel(score){
+  if(score>=61)return{label:'高风险',color:var_red,bg:'#FEF2F2',bc:'rgba(185,28,28,.25)',icon:'ti-shield-x'};
+  if(score>=31)return{label:'中风险',color:var_amber,bg:'#FFFBEB',bc:'rgba(180,83,9,.25)',icon:'ti-shield-half'};
+  return{label:'低风险',color:var_green,bg:'#ECFDF5',bc:'rgba(4,120,87,.25)',icon:'ti-shield-check'};
+}
+const var_red='#B91C1C',var_amber='#B45309',var_green='#047857';
+
+function dimColor(score){
+  if(score>=61)return var_red;
+  if(score>=31)return var_amber;
+  return var_green;
+}
+
+/* ═══ SELECT HIGHLIGHT ═══ */
+function highlightRisk(el){
+  el.classList.remove('risk-high','risk-mid');
+  const v=el.value;
+  const highVals=['critical','serious','never','ambassador'];
+  const midVals=['minor','sometimes','exclusive','warning'];
+  if(highVals.includes(v))el.classList.add('risk-high');
+  else if(midVals.includes(v))el.classList.add('risk-mid');
+}
+
+/* ═══ RENDER OUTPUT ═══ */
+function renderOutput(name,result,container,dateStr){
+  const rl=riskLevel(result.total);
+  const hasCritical=result.flags.some(f=>f.type==='critical');
+  const flagsHtml=result.flags.length?`
+    <div class="flags-section">
+      <div style="font-size:11px;font-weight:500;color:var(--t3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">
+        <i class="ti ti-alert-triangle" style="font-size:12px;vertical-align:-1px;margin-right:4px" aria-hidden="true"></i>预警标记（${result.flags.length} 项）
+      </div>
+      ${result.flags.map(f=>`<div class="flag-item ${f.type==='critical'?'flag-critical':'flag-warning'}">
+        <i class="ti ${f.type==='critical'?'ti-circle-x':'ti-alert-circle'} flag-icon" aria-hidden="true"></i>
+        <span>${f.msg}</span>
+      </div>`).join('')}
+    </div>`:'';
+
+  const formulaParts=result.dimScores.map((s,i)=>`${s}×${DIMS[i].weight*100}%`).join('+');
+
+  container.innerHTML=`
+    <div class="risk-hero">
+      <div class="risk-num" style="color:${rl.color}">${result.total}</div>
+      <div class="risk-right">
+        <div class="risk-pill" style="background:${rl.bg};color:${rl.color};border-color:${rl.bc}">
+          <i class="ti ${rl.icon}" style="font-size:13px" aria-hidden="true"></i>${rl.label}
+          ${hasCritical?'<span style="margin-left:4px;font-size:10px;background:'+var_red+';color:#fff;padding:1px 6px;border-radius:20px">需法务复核</span>':''}
+        </div>
+        <div class="bar-wrap"><div class="bar-fill" style="width:${result.total}%;background:${rl.color}"></div></div>
+        <div class="risk-cap">风险评分 / 满分 100 · 分数越高风险越大${dateStr?' · '+dateStr:''}</div>
+      </div>
+    </div>
+    ${flagsHtml}
+    <div>${result.dimScores.map((s,i)=>{
+      const c=dimColor(s);
+      return`<div class="dim-row">
+        <div class="dim-name">${DIMS[i].name}</div>
+        <div class="dim-bar"><div class="dim-bar-fill" style="width:${s}%;background:${c}"></div></div>
+        <div class="dim-score" style="color:${c}">${s}</div>
+        <div class="dim-weight">${DIMS[i].weight*100}%</div>
+      </div>`;}).join('')}</div>
+    ${result.inds.map((layer,li)=>{
+      const m=DIMS[li];
+      return`<div class="ind-sec">
+        <div class="ind-sec-title">
+          <span style="width:7px;height:7px;border-radius:50%;background:${m.color};display:inline-block"></span>
+          ${m.name} · 风险分 ${result.dimScores[li]} · 权重 ${m.weight*100}%
+        </div>
+        ${layer.map(ind=>`<div class="ind-row">
+          <span class="ind-name">${ind.name}</span>
+          <div class="ind-mini"><div class="ind-mini-fill" style="width:${ind.score}%;background:${dimColor(ind.score)}"></div></div>
+          <span class="ind-score" style="color:${dimColor(ind.score)}">${ind.score}</span>
+          <span class="ind-w">${ind.weight}%</span>
+        </div>`).join('')}
+      </div>`;}).join('')}
+    <div class="formula-box"><strong>计算过程：</strong><br>风险总分 = ${formulaParts} = <strong>${result.total}</strong><br>低风险 0–30 · 中风险 31–60 · 高风险 61–100</div>
+  `;
+}
+
+/* ═══ MANUAL ═══ */
+function s(id){return document.getElementById(id).value}
+function n(id){return parseFloat(document.getElementById(id).value)||0}
+
+function calcManual(){
+  const name=document.getElementById('m-name').value.trim();
+  if(!name){showAlert('请填写 KOL 名称');return}
+  const d={country:s('m-country'),incident:s('m-incident'),falsead:s('m-falsead'),
+    sentiment:s('m-sentiment'),adlabel:s('m-adlabel'),penalty:s('m-penalty'),compliance:s('m-compliance'),
+    competitor:s('m-competitor'),compcontentpct:n('m-compcontentpct'),complevel:s('m-complevel'),
+    fakepct:n('m-fakepct'),spikegrowth:s('m-spikegrowth'),templatecomment:s('m-templatecomment'),
+    gdpr:s('m-gdpr'),datause:s('m-datause'),minorpct:n('m-minorpct'),agesuit:s('m-agesuit'),
+    exaggerate:s('m-exaggerate'),adas:s('m-adas'),techaccuracy:s('m-techaccuracy'),
+    latedelete:s('m-latedelete'),briefreject:s('m-briefreject')};
+  const result=scoreKOL(d);
+  const now=new Date().toLocaleDateString('zh-CN');
+  document.getElementById('m-out-name').textContent=name;
+  document.getElementById('m-out-date').textContent=now;
+  renderOutput(name,result,document.getElementById('m-out-body'),now);
+}
+
+function showAlert(msg){
+  const el=document.getElementById('alert-box');
+  document.getElementById('alert-msg').textContent=msg;
+  el.classList.add('show');setTimeout(()=>el.classList.remove('show'),4000);
+}
+function clearAll(){
+  document.querySelectorAll('#tab-manual input[type=number],#tab-manual input[type=text]').forEach(el=>el.value='');
+  document.querySelectorAll('#tab-manual select').forEach(el=>{el.selectedIndex=0;el.classList.remove('risk-high','risk-mid')});
+  document.getElementById('m-out-name').textContent='风险评分结果';
+  document.getElementById('m-out-date').textContent='';
+  document.getElementById('m-out-body').innerHTML='<div class="out-placeholder"><i class="ti ti-shield" aria-hidden="true"></i>填写左侧数据后<br>点击「计算风险评分」</div>';
+}
+
+/* ═══ BATCH UPLOAD ═══ */
+let rankingData=[];
+function handleDrop(e){e.preventDefault();document.getElementById('upload-zone').classList.remove('drag');const f=e.dataTransfer.files[0];if(f)handleFile(f)}
+function handleFile(file){
+  if(!file)return;
+  const prog=document.getElementById('prog-wrap');const fill=document.getElementById('prog-fill');const status=document.getElementById('upload-status');
+  prog.style.display='block';fill.style.width='20%';status.textContent='正在读取…';
+  const reader=new FileReader();
+  reader.onload=e=>{
+    try{
+      fill.style.width='50%';
+      const wb=XLSX.read(e.target.result,{type:'array'});
+      const ws=wb.Sheets[wb.SheetNames[0]];
+      const rows=XLSX.utils.sheet_to_json(ws,{header:1,defval:''});
+      fill.style.width='70%';
+      if(rows.length<2){status.textContent='未找到数据行';fill.style.width='0%';return}
+      const dataRows=rows.slice(1).filter(r=>r[0]);
+      rankingData=dataRows.map(row=>{
+        const raw={};COL_MAP.forEach((k,i)=>raw[k]=row[i]);
+        const d={
+          country:String(raw.country||'DE'),incident:String(raw.incident||'none'),
+          falsead:String(raw.falsead||'none'),sentiment:String(raw.sentiment||'none'),
+          adlabel:String(raw.adlabel||'always'),penalty:String(raw.penalty||'none'),compliance:String(raw.compliance||'high'),
+          competitor:String(raw.competitor||'none'),compcontentpct:Number(raw.compcontentpct)||0,complevel:String(raw.complevel||'none'),
+          fakepct:Number(raw.fakepct)||0,spikegrowth:String(raw.spikegrowth||'none'),templatecomment:String(raw.templatecomment||'normal'),
+          gdpr:String(raw.gdpr||'none'),datause:String(raw.datause||'compliant'),
+          minorpct:Number(raw.minorpct)||0,agesuit:String(raw.agesuit||'suitable'),
+          exaggerate:String(raw.exaggerate||'none'),adas:String(raw.adas||'none'),techaccuracy:String(raw.techaccuracy||'high'),
+          latedelete:String(raw.latedelete||'none'),briefreject:String(raw.briefreject||'cooperative'),
+        };
+        return{name:String(raw.name||'未知'),country:d.country,...d,result:scoreKOL(d)};
+      });
+      rankingData.sort((a,b)=>b.result.total-a.result.total);
+      fill.style.width='100%';
+      status.textContent=`成功读取 ${rankingData.length} 个 KOL`;
+      renderRanking();
+      setTimeout(()=>{prog.style.display='none';fill.style.width='0%'},800);
+    }catch(err){status.textContent='解析失败：'+err.message;fill.style.width='0%'}
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+function renderRanking(){
+  document.getElementById('ranking-output').style.display='block';
+  document.getElementById('ranking-title').textContent=`风险排名（由高到低）· 共 ${rankingData.length} 位 KOL`;
+  const container=document.getElementById('ranking-rows');container.innerHTML='';
+  rankingData.forEach((kol,idx)=>{
+    const r=kol.result;const rl=riskLevel(r.total);
+    const flag={DE:'🇩🇪',GB:'🇬🇧',FR:'🇫🇷',MULTI:'🌍'}[kol.country]||'';
+    const hasCrit=r.flags.some(f=>f.type==='critical');
+    const row=document.createElement('div');row.className='rank-row';row.onclick=()=>openModal(idx);
+    row.innerHTML=`
+      <div class="rank-num ${rl.label==='高风险'?'rn-high':rl.label==='中风险'?'rn-mid':'rn-low'}">${idx+1}</div>
+      <div>
+        <div class="rank-name">${kol.name} ${hasCrit?'<span style="font-size:10px;background:'+var_red+';color:#fff;padding:1px 5px;border-radius:10px;margin-left:4px">需复核</span>':''}</div>
+        <div class="rank-mkt">${flag} ${kol.country}</div>
+      </div>
+      <div class="rank-total" style="color:${rl.color}">${r.total}</div>
+      <div class="rank-level" style="background:${rl.bg};color:${rl.color};border-color:${rl.bc}">${rl.label}</div>
+      ${r.dimScores.map(s=>`<div class="rank-dim" style="color:${dimColor(s)}">${s}</div>`).join('')}
+    `;
+    container.appendChild(row);
+  });
+}
+
+function openModal(idx){
+  const kol=rankingData[idx];const r=kol.result;const rl=riskLevel(r.total);
+  const flag={DE:'🇩🇈',GB:'🇬🇧',FR:'🇫🇷',MULTI:'🌍'}[kol.country]||'';
+  document.getElementById('modal').innerHTML=`
+    <div class="modal-hd">
+      <div><div style="font-size:15px;font-weight:600;margin-bottom:2px">${kol.name}</div>
+      <div style="font-size:12px;color:var(--t2)">${flag} ${kol.country}</div></div>
+      <div style="flex:1"></div>
+      <div style="text-align:right">
+        <div style="font-family:'DM Serif Display',serif;font-size:40px;line-height:1;color:${rl.color}">${r.total}</div>
+        <div style="font-size:11px;padding:2px 8px;border-radius:20px;background:${rl.bg};color:${rl.color};border:0.5px solid ${rl.bc};display:inline-block;margin-top:3px">${rl.label}</div>
+      </div>
+      <button class="btn ghost" onclick="closeModal()" style="margin-left:10px;padding:6px 10px" aria-label="关闭"><i class="ti ti-x" style="font-size:16px" aria-hidden="true"></i></button>
+    </div>
+    <div class="modal-body">
+      ${r.flags.length?`<div style="margin-bottom:12px;display:flex;flex-direction:column;gap:5px">
+        ${r.flags.map(f=>`<div class="flag-item ${f.type==='critical'?'flag-critical':'flag-warning'}">
+          <i class="ti ${f.type==='critical'?'ti-circle-x':'ti-alert-circle'} flag-icon" aria-hidden="true"></i><span>${f.msg}</span>
+        </div>`).join('')}
+      </div>`:''}
+      ${r.inds.map((layer,li)=>{const m=DIMS[li];const ds=r.dimScores[li];return`
+        <div style="margin-bottom:12px">
+          <div style="display:flex;align-items:center;gap:6px;font-size:11px;font-weight:500;color:var(--t2);margin-bottom:5px">
+            <span style="width:7px;height:7px;border-radius:50%;background:${m.color};display:inline-block"></span>
+            ${m.name} · 风险分 <span style="color:${dimColor(ds)}">${ds}</span> · 权重 ${m.weight*100}%
+          </div>
+          ${layer.map(ind=>`<div class="ind-row">
+            <span class="ind-name">${ind.name}</span>
+            <div class="ind-mini"><div class="ind-mini-fill" style="width:${ind.score}%;background:${dimColor(ind.score)}"></div></div>
+            <span class="ind-score" style="color:${dimColor(ind.score)}">${ind.score}</span>
+            <span class="ind-w">${ind.weight}%</span>
+          </div>`).join('')}
+        </div>`}).join('')}
+    </div>`;
+  document.getElementById('overlay').classList.add('open');
+}
+function closeModal(){document.getElementById('overlay').classList.remove('open')}
+
+function exportRanking(){
+  if(!rankingData.length)return;
+  const rows=[['排名','KOL名称','市场','风险评分','风险等级','需法务复核','舆情','广告合规','竞品','虚假流量','隐私','未成年','声明','执行','预警详情']];
+  rankingData.forEach((kol,i)=>{
+    const r=kol.result;const rl=riskLevel(r.total);
+    const hasCrit=r.flags.some(f=>f.type==='critical')?'是':'否';
+    const flagDetail=r.flags.map(f=>f.msg).join('；');
+    rows.push([i+1,kol.name,kol.country,r.total,rl.label,hasCrit,...r.dimScores,flagDetail]);
+  });
+  const ws=XLSX.utils.aoa_to_sheet(rows);const wb=XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb,ws,'KOL风险报告');XLSX.writeFile(wb,'KOL风险评分报告.xlsx');
+}
+
+function downloadTemplate(){
+  const headers=['KOL名称','主要市场(DE/GB/FR/MULTI)',
+    '重大负面事件(none/minor/serious/critical)','虚假宣传记录(none/minor/serious)','舆情传播范围(none/local/wide)',
+    '广告标注习惯(always/sometimes/never)','平台监管处罚(none/warning/penalty)','合规意愿(high/mid/low)',
+    '竞品绑定状态(none/nonexclusive/exclusive/ambassador)','近期竞品内容%','竞品品牌级别(none/indirect/direct)',
+    '僵尸粉比例%','粉丝暴涨记录(none/once/multiple)','评论模板化(normal/some/heavy)',
+    'GDPR违规记录(none/minor/serious)','数据使用规范(compliant/unclear/violation)',
+    '未成年受众%','内容适龄性(suitable/partial/unsuitable)',
+    '历史夸大声明(none/minor/serious)','自动驾驶声明风险(none/cautious/exaggerated)','技术准确性(high/mid/low)',
+    '历史延期删帖(none/occasional/frequent)','Brief拒绝修改(cooperative/friction/refuse)'];
+  const ws=XLSX.utils.aoa_to_sheet([headers]);
+  ws['!cols']=headers.map(h=>({wch:Math.max(h.length*1.3,16)}));
+  const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'KOL风险数据');XLSX.writeFile(wb,'KOL风险评估模板_v1.xlsx');
+}
+
+function switchTab(tab,el){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('tab-upload').style.display=tab==='upload'?'':'none';
+  document.getElementById('tab-manual').style.display=tab==='manual'?'':'none';
+}
+</script>
+</body>
+</html>

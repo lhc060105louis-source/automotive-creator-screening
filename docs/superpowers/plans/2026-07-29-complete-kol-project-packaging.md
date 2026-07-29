@@ -12,6 +12,7 @@
 
 - Canonical source: `/Users/haochongluo/Desktop/凯捷实习/.worktrees/kol-complete-cloud/KOL平台完整交付包`.
 - Retain the existing static demonstration at repository root unchanged.
+- Retain the numbered delivery assets and `README.txt` at the `desktop-app/` root because the canonical packaging manifest and its tests require them.
 - Exclude `.venv`, `.build`, `dist`, `.pytest_cache`, `__pycache__`, `*.pyc`, `*.db`, and temporary rendering files.
 - Do not commit credentials, API keys, access tokens, or service-role keys.
 - Include only business documents that are not copies of files already in `docs/`.
@@ -75,6 +76,8 @@ Expected: one matching ignore rule per path.
 - Create: `desktop-app/requirements.txt`
 - Create: `desktop-app/pytest.ini`
 - Create: `desktop-app/VERIFICATION.md`
+- Create: `desktop-app/01_KOL合作管理平台.html` through `desktop-app/07_评估模型说明文稿.docx`
+- Create: `desktop-app/README.txt`
 
 **Interfaces:**
 - Consumes: canonical source under `.worktrees/kol-complete-cloud/KOL平台完整交付包`.
@@ -92,6 +95,7 @@ cp -R ../.worktrees/kol-complete-cloud/KOL平台完整交付包/packaging deskto
 cp -R ../.worktrees/kol-complete-cloud/KOL平台完整交付包/supabase desktop-app/
 cp -R ../.worktrees/kol-complete-cloud/KOL平台完整交付包/examples desktop-app/
 cp -R ../.worktrees/kol-complete-cloud/KOL平台完整交付包/demo-screenshots desktop-app/
+cp ../.worktrees/kol-complete-cloud/KOL平台完整交付包/01_KOL合作管理平台.html ../.worktrees/kol-complete-cloud/KOL平台完整交付包/02_商业价值评分模型.html ../.worktrees/kol-complete-cloud/KOL平台完整交付包/03_风险评分模型.html ../.worktrees/kol-complete-cloud/KOL平台完整交付包/04_核心逻辑代码（含注释）.js ../.worktrees/kol-complete-cloud/KOL平台完整交付包/05_技术架构图.html ../.worktrees/kol-complete-cloud/KOL平台完整交付包/06_BYD_Xpeng_KOL评估数据.xlsx ../.worktrees/kol-complete-cloud/KOL平台完整交付包/07_评估模型说明文稿.docx ../.worktrees/kol-complete-cloud/KOL平台完整交付包/README.txt desktop-app/
 cp ../.worktrees/kol-complete-cloud/KOL平台完整交付包/requirements.txt ../.worktrees/kol-complete-cloud/KOL平台完整交付包/pytest.ini ../.worktrees/kol-complete-cloud/KOL平台完整交付包/VERIFICATION.md desktop-app/
 ```
 

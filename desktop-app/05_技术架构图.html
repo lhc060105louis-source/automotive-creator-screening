@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>欧洲车企 KOL 平台 — 技术架构图</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Inter',system-ui,sans-serif;background:#f8f7f4;min-height:100vh;display:flex;align-items:flex-start;justify-content:center;padding:32px 20px}
+.page{width:980px}
+h1{font-size:17px;font-weight:600;color:#111;margin-bottom:3px}
+.sub{font-size:12px;color:#777;margin-bottom:22px}
+.sync-note{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:-10px 0 18px}
+.sync-note div{background:#fff;border:1px solid #CBD5E1;border-radius:8px;padding:10px;font-size:10px;color:#475569}
+.sync-note strong{display:block;color:#0F766E;font-size:11px;margin-bottom:4px}
+
+/* ── outer layout: content + right labels ── */
+.outer{display:flex;gap:0;align-items:stretch}
+.main{flex:1;min-width:0;display:flex;flex-direction:column;gap:0}
+.right-labels{width:38px;display:flex;flex-direction:column;padding-left:6px}
+
+/* ── right bracket labels ── */
+.rl{flex:1;display:flex;align-items:center;position:relative;padding-left:10px;font-size:11px;font-weight:500;letter-spacing:.12em;writing-mode:vertical-lr;transform:rotate(180deg)}
+.rl::after{content:'';position:absolute;right:0;top:0;bottom:0;width:2px;border-top:1.5px solid;border-bottom:1.5px solid;border-right:1.5px solid}
+
+/* ── application layer ── */
+.app-zone{padding:0 0 0 0}
+.app-row{display:grid;grid-template-columns:repeat(6,1fr);gap:6px;padding:8px;background:#fff;border:0.5px solid #ddd;border-radius:8px}
+.app-box{background:#F9C0BE;color:#7F1D1D;border-radius:5px;padding:7px 4px;text-align:center;font-size:11px;font-weight:500;line-height:1.35}
+
+/* ── arrows pointing up ── */
+.up-arrows{display:flex;justify-content:space-around;padding:0 8px;height:30px;align-items:center;position:relative}
+.up-arr{display:flex;flex-direction:column;align-items:center;gap:0}
+.up-arr svg{display:block}
+
+/* ── data platform wrapper (border + left sidebar) ── */
+.platform-wrap{border:1px solid #b0a8d8;border-radius:8px;overflow:hidden;background:#fff;margin-bottom:0}
+.platform-inner{display:flex}
+.left-sidebar{display:flex;flex-direction:column;width:20px;background:#fff;border-right:0.5px solid #e0d8f0}
+.ls-label{flex:1;writing-mode:vertical-lr;transform:rotate(180deg);display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:500;color:#3730A3;background:#EDE9FE;letter-spacing:.08em;text-align:center;padding:4px 1px;border-bottom:0.5px solid #C4B5FD}
+.ls-label:last-child{border-bottom:none}
+.platform-content{flex:1;min-width:0;padding:10px;display:flex;flex-direction:column;gap:8px}
+
+/* ── service row ── */
+.service-row{display:flex;align-items:center;gap:8px}
+.service-title{font-size:12px;font-weight:600;color:#3730A3;white-space:nowrap;min-width:80px}
+.svc-boxes{flex:1;display:grid;grid-template-columns:repeat(4,1fr) 44px;gap:5px}
+.svc-box{background:#E4DFFC;color:#3730A3;border-radius:4px;padding:6px 4px;text-align:center;font-size:11px;font-weight:500}
+.dot-box{background:#F1EFE8;color:#9E9C96;border-radius:4px;padding:6px 4px;text-align:center;font-size:14px}
+
+/* ── data asset ── */
+.asset-wrap{background:#F5F3FF;border:0.5px solid #C4B5FD;border-radius:6px;padding:8px}
+.asset-title{font-size:11px;font-weight:600;color:#3C3489;margin-bottom:7px}
+.asset-rows{display:flex;flex-direction:column;gap:5px}
+.asset-row{display:flex;gap:5px;align-items:stretch}
+.asset-section{flex:1;background:#EDE9FE;border-radius:5px;padding:6px;display:flex;gap:5px;align-items:center}
+.asset-lbl{background:#C4B5FD;color:#26215C;border-radius:4px;padding:5px 6px;font-weight:600;font-size:9px;text-align:center;line-height:1.55;min-width:56px;flex-shrink:0}
+.asset-boxes{flex:1;min-width:0;display:grid;gap:3px}
+.ab{background:#fff;border:0.5px solid #C4B5FD;border-radius:3px;padding:4px 3px;text-align:center;font-size:9px;color:#3C3489;font-weight:500;line-height:1.3}
+
+/* ── 汇聚 + 开发 ── */
+.hj-dev{display:grid;grid-template-columns:1fr 1fr;gap:0;background:#fff;border:0.5px solid #ddd;border-radius:6px;overflow:hidden}
+.hj-section{padding:8px}
+.hj-section:first-child{border-right:0.5px solid #ddd}
+.hj-title{font-size:11px;font-weight:600;color:#475569;margin-bottom:6px;text-align:center}
+.hj-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:4px;margin-bottom:4px}
+.hj-box{background:#E4DFFC;color:#3730A3;border-radius:4px;padding:6px 3px;text-align:center;font-size:10px;font-weight:500}
+
+/* ── tech stack ── */
+.tech-row{display:grid;grid-template-columns:repeat(6,1fr);gap:5px}
+.tech-box{background:#E4DFFC;color:#3730A3;border-radius:4px;padding:7px 4px;text-align:center;font-size:11px;font-weight:500}
+
+/* ── data source ── */
+.source-row{display:flex;gap:0;background:#fff;border:0.5px solid #ddd;border-radius:6px;overflow:hidden}
+.src-section{flex:1;padding:8px}
+.src-section:first-child{border-right:0.5px dashed #ddd}
+.src-header{display:flex;align-items:center;gap:6px;margin-bottom:7px}
+.src-main-label{font-size:13px;font-weight:600;color:#111;white-space:nowrap}
+.src-type-label{font-size:11px;font-weight:500;color:#475569}
+.src-boxes{display:grid;gap:4px}
+.src-box{background:#E4DFFC;color:#3730A3;border-radius:4px;padding:6px 4px;text-align:center;font-size:11px;font-weight:500}
+
+/* ── bi arrows ── */
+.bi-arrows{display:flex;justify-content:space-around;padding:0 40px;height:28px;align-items:center}
+.bi-arr{color:#555;font-size:18px;font-weight:600}
+
+/* ── base layer ── */
+.base-wrap{background:#fff;border:0.5px solid #ddd;border-radius:8px;padding:10px;display:flex;gap:10px;align-items:center}
+.base-label{font-size:14px;font-weight:600;color:#111;white-space:nowrap;min-width:72px}
+.base-boxes{flex:1;display:grid;grid-template-columns:repeat(4,1fr);gap:5px}
+.base-box{background:#E4DFFC;color:#3730A3;border-radius:4px;padding:7px 4px;text-align:center;font-size:11px;font-weight:500}
+
+/* ── IoT layer ── */
+.iot-bar{background:#C4B5FD;border-radius:8px;padding:11px;text-align:center;font-size:13px;font-weight:600;color:#26215C;letter-spacing:.05em}
+
+/* spacers */
+.sp4{height:4px}
+.sp6{height:6px}
+.sp8{height:8px}
+</style>
+</head>
+<body>
+<div class="page">
+<h1>欧洲车企 KOL SaaS 平台 — 技术架构图</h1>
+<div class="sub">面向中国车企出海欧洲（英 / 法 / 德）场景 · 基于 KOL 商业价值评估模型</div>
+<section class="sync-note" aria-label="本地优先同步架构">
+  <div><strong>桌面客户端</strong>macOS / Windows<br>FastAPI 本地服务</div>
+  <div><strong>离线数据</strong>SQLite 本机事务<br>断网继续使用</div>
+  <div><strong>团队共享</strong>同步队列 → Supabase<br>冲突审计与重试</div>
+  <div><strong>密钥安全</strong>macOS Keychain<br>Windows Credential Manager</div>
+</section>
+
+<div class="outer">
+<div class="main">
+
+  <!-- ══ 应用层 ══ -->
+  <div class="app-zone">
+    <div class="app-row">
+      <div class="app-box">KOL 搜索筛选</div>
+      <div class="app-box">商业价值评分</div>
+      <div class="app-box">风险系数评估</div>
+      <div class="app-box">KOL 排名对比</div>
+      <div class="app-box">合作流程管理</div>
+      <div class="app-box">数据报告导出</div>
+    </div>
+  </div>
+
+  <!-- ══ 向上箭头 ══ -->
+  <div class="up-arrows">
+    <svg width="22" height="30"><line x1="11" y1="28" x2="11" y2="4" stroke="#444" stroke-width="1.8"/><polygon points="11,0 6,10 16,10" fill="#444"/></svg>
+    <svg width="22" height="30"><line x1="11" y1="28" x2="11" y2="4" stroke="#444" stroke-width="1.8"/><polygon points="11,0 6,10 16,10" fill="#444"/></svg>
+    <svg width="22" height="30"><line x1="11" y1="28" x2="11" y2="4" stroke="#444" stroke-width="1.8"/><polygon points="11,0 6,10 16,10" fill="#444"/></svg>
+  </div>
+
+  <!-- ══ 数据平台主体 ══ -->
+  <div class="platform-wrap">
+    <div class="platform-inner">
+
+      <!-- 左侧竖排标签 -->
+      <div class="left-sidebar">
+        <div class="ls-label">KOL 数据运营体系</div>
+        <div class="ls-label">GDPR 合规管理</div>
+      </div>
+
+      <div class="platform-content">
+
+        <!-- 数据服务体系 -->
+        <div class="service-row">
+          <div class="service-title">数据服务体系</div>
+          <div class="svc-boxes">
+            <div class="svc-box">服务管理</div>
+            <div class="svc-box">评分引擎</div>
+            <div class="svc-box">API 网关</div>
+            <div class="svc-box">权重配置</div>
+            <div class="dot-box">……</div>
+          </div>
+        </div>
+
+        <!-- 数据资产 -->
+        <div class="asset-wrap">
+          <div class="asset-title">数据资产</div>
+          <div class="asset-rows">
+
+            <!-- TDM + ADS -->
+            <div class="asset-row">
+              <div class="asset-section">
+                <div class="asset-lbl">标签数据层<br>TDM</div>
+                <div class="asset-boxes" style="grid-template-columns:repeat(4,1fr)">
+                  <div class="ab">KOL 标签</div>
+                  <div class="ab">内容标签</div>
+                  <div class="ab">市场标签</div>
+                  <div class="ab">品牌标签</div>
+                </div>
+              </div>
+              <div class="asset-section">
+                <div class="asset-lbl">应用数据层<br>ADS</div>
+                <div class="asset-boxes" style="grid-template-columns:repeat(4,1fr)">
+                  <div class="ab">商业价值评分</div>
+                  <div class="ab">风险系数</div>
+                  <div class="ab">KOL 排名</div>
+                  <div class="ab">合作分析</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- DWS -->
+            <div class="asset-row">
+              <div class="asset-section">
+                <div class="asset-lbl">统一数仓层<br>DWS</div>
+                <div class="asset-boxes" style="grid-template-columns:repeat(6,1fr)">
+                  <div class="ab">KOL 域</div>
+                  <div class="ab">内容域</div>
+                  <div class="ab">受众域</div>
+                  <div class="ab">平台域</div>
+                  <div class="ab">合作历史域</div>
+                  <div class="ab">欧洲市场域</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- ODS -->
+            <div class="asset-row">
+              <div class="asset-section">
+                <div class="asset-lbl">贴源数据层<br>ODS</div>
+                <div class="asset-boxes" style="grid-template-columns:repeat(6,1fr)">
+                  <div class="ab">YouTube 数据</div>
+                  <div class="ab">Instagram 数据</div>
+                  <div class="ab">TikTok 数据</div>
+                  <div class="ab">第三方检测</div>
+                  <div class="ab">人工录入</div>
+                  <div class="ab">历史合作数据</div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- 数据汇聚 + 数据开发 -->
+        <div class="hj-dev">
+          <div class="hj-section">
+            <div class="hj-title">数据汇聚</div>
+            <div class="hj-grid">
+              <div class="hj-box">API 实时接入</div>
+              <div class="hj-box">Excel 批量导入</div>
+              <div class="hj-box">爬虫采集</div>
+              <div class="hj-box">离线同步</div>
+            </div>
+            <div class="hj-grid" style="grid-template-columns:repeat(3,1fr)">
+              <div class="hj-box">可视化配置</div>
+              <div class="hj-box">数据清洗</div>
+              <div class="dot-box" style="background:#F1EFE8;color:#9E9C96;border-radius:4px;padding:6px 3px;text-align:center;font-size:14px">……</div>
+            </div>
+          </div>
+          <div class="hj-section">
+            <div class="hj-title">数据开发</div>
+            <div class="hj-grid">
+              <div class="hj-box">评分引擎开发</div>
+              <div class="hj-box">权重算法</div>
+              <div class="hj-box">归一化处理</div>
+              <div class="hj-box">环境隔离</div>
+            </div>
+            <div class="hj-grid" style="grid-template-columns:repeat(3,1fr)">
+              <div class="hj-box">智能调度</div>
+              <div class="hj-box">监控告警</div>
+              <div class="dot-box" style="background:#F1EFE8;color:#9E9C96;border-radius:4px;padding:6px 3px;text-align:center;font-size:14px">……</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 技术栈 -->
+        <div class="tech-row">
+          <div class="tech-box">Python / Node.js</div>
+          <div class="tech-box">SheetJS</div>
+          <div class="tech-box">Claude API</div>
+          <div class="tech-box">PostgreSQL</div>
+          <div class="tech-box">REST API</div>
+          <div class="tech-box">Docker</div>
+        </div>
+
+        <!-- 数据源 -->
+        <div class="source-row">
+          <div class="src-section">
+            <div class="src-header">
+              <div class="src-main-label">数据源</div>
+              <div class="src-type-label">内部数据</div>
+            </div>
+            <div class="src-boxes" style="grid-template-columns:repeat(3,1fr)">
+              <div class="src-box">Excel 上传</div>
+              <div class="src-box">人工录入</div>
+              <div class="src-box">历史合作记录</div>
+            </div>
+          </div>
+          <div class="src-section">
+            <div class="src-header">
+              <div class="src-type-label">外部数据</div>
+            </div>
+            <div class="src-boxes" style="grid-template-columns:repeat(4,1fr)">
+              <div class="src-box">YouTube API</div>
+              <div class="src-box">Instagram API</div>
+              <div class="src-box">TikTok API</div>
+              <div class="src-box">HypeAuditor</div>
+            </div>
+          </div>
+        </div>
+
+      </div><!-- /platform-content -->
+    </div><!-- /platform-inner -->
+  </div><!-- /platform-wrap -->
+
+  <!-- ══ 双向箭头 ══ -->
+  <div class="bi-arrows">
+    <span class="bi-arr">⇅</span>
+    <span class="bi-arr">⇅</span>
+    <span class="bi-arr">⇅</span>
+  </div>
+
+  <!-- ══ 基础工具层 ══ -->
+  <div class="base-wrap">
+    <div class="base-label">基础工具层</div>
+    <div class="base-boxes">
+      <div class="base-box">HTTPS / CDN</div>
+      <div class="base-box">OAuth 2.0 认证</div>
+      <div class="base-box">多云平台混合部署</div>
+      <div class="base-box">本地数据中心</div>
+    </div>
+  </div>
+
+  <div class="sp6"></div>
+
+  <!-- ══ GDPR / 物联互通层 ══ -->
+  <div class="iot-bar">GDPR 合规基础设施（欧洲数据保护法规）</div>
+
+</div><!-- /main -->
+
+<!-- ══ 右侧标签 ══ -->
+<div class="right-labels">
+  <div class="rl" style="color:#9F1239;flex:0 0 52px;--bcolor:#FDA4AF" >
+    <span style="color:#9F1239;border-right:0;padding-right:0">应用</span>
+  </div>
+  <div style="height:30px"></div>
+  <div class="rl" style="color:#3730A3;flex:1">
+    <span>数据中台</span>
+  </div>
+  <div style="height:28px"></div>
+  <div class="rl" style="color:#0C447C;flex:0 0 100px">
+    <span>云底座</span>
+  </div>
+</div>
+
+</div><!-- /outer -->
+</div><!-- /page -->
+
+<style>
+.rl span{writing-mode:vertical-lr;transform:rotate(180deg);display:block;text-align:center;font-size:11px;font-weight:500;letter-spacing:.12em;padding:8px 0;border-right:2px solid currentColor}
+</style>
+</body>
+</html>

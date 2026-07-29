@@ -16,6 +16,9 @@ The existing repository root remains the standalone static demonstration. Its se
 .
 ├── index.html, src/, tools/, data/, docs/   # Existing static demonstration
 ├── desktop-app/                             # Canonical desktop collaboration application
+│   ├── 01_KOL合作管理平台.html through 07_评估模型说明文稿.docx
+│   │                                        # Numbered delivery assets required by desktop packaging tests
+│   ├── README.txt                           # Desktop-specific delivery and credential guidance
 │   ├── app/                                 # FastAPI server, frontend modules, collectors, sync layer
 │   ├── packaging/                           # macOS and Windows build definitions
 │   ├── supabase/                            # Database schema and row-level security policy
@@ -38,7 +41,7 @@ The existing repository root remains the standalone static demonstration. Its se
 
 Include source code, static assets required by the application, dependency manifests, tests, build scripts, Supabase configuration, sample datasets, screenshots, and business documentation.
 
-Exclude virtual environments, build directories, packaged executables, caches, Python bytecode, local SQLite databases, temporary PDF-rendering assets, and repeated copies of an included file.
+Exclude virtual environments, build directories, packaged executables, caches, Python bytecode, local SQLite databases, temporary PDF-rendering assets, and repeated source variants. The numbered delivery assets and `README.txt` are retained inside `desktop-app/` because its packaging definition and automated tests require a self-contained delivery root; several assets also contain desktop-specific architecture and delivery guidance.
 
 ## README Requirements
 

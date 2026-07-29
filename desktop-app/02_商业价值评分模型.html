@@ -1,0 +1,724 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>欧洲车企 KOL 商业价值评估模型 v3.0</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=DM+Serif+Display&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.8.0/dist/tabler-icons.min.css">
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#F2F1ED;--surface:#FFF;--s2:#F7F6F4;
+  --border:rgba(0,0,0,.08);--border-md:rgba(0,0,0,.13);
+  --t1:#111110;--t2:#52514E;--t3:#9E9C96;
+  --r:10px;--rsm:6px;--rlg:14px;
+}
+body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t1);font-size:14px;line-height:1.5}
+.shell{max-width:980px;margin:0 auto;padding:28px 20px 80px}
+.page-title{font-size:19px;font-weight:600;margin-bottom:4px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.page-sub{font-size:13px;color:var(--t2);margin-bottom:20px}
+.badge{font-size:11px;font-weight:500;padding:2px 9px;border-radius:20px;border:0.5px solid}
+.b-amber{background:#FFFBEB;color:#92400E;border-color:rgba(180,83,9,.25)}
+.b-green{background:#ECFDF5;color:#065F46;border-color:rgba(5,150,105,.25)}
+
+/* tabs */
+.tabs{display:flex;gap:4px;background:var(--s2);border:0.5px solid var(--border-md);border-radius:var(--r);padding:4px;width:fit-content;margin-bottom:20px}
+.tab{font-size:13px;padding:7px 20px;border-radius:var(--rsm);border:none;background:transparent;color:var(--t2);cursor:pointer;transition:all .15s;display:flex;align-items:center;gap:6px;font-family:inherit}
+.tab.active{background:var(--surface);color:var(--t1);font-weight:500;border:0.5px solid var(--border-md)}
+
+/* cards */
+.card{background:var(--surface);border:0.5px solid var(--border-md);border-radius:var(--rlg);overflow:hidden;margin-bottom:12px}
+.card-hd{display:flex;align-items:center;gap:8px;padding:12px 16px;border-bottom:0.5px solid var(--border);background:var(--s2)}
+.dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.card-title{font-size:13px;font-weight:500;color:var(--t1);flex:1}
+.card-body{padding:14px 16px}
+
+/* layout */
+.layout{display:grid;grid-template-columns:1fr 1fr;gap:14px;align-items:start}
+
+/* fields */
+.field{margin-bottom:12px}
+.field:last-child{margin-bottom:0}
+.field label{display:block;font-size:12px;font-weight:500;color:var(--t2);margin-bottom:4px}
+.hint{font-size:11px;color:var(--t3);margin-bottom:4px;display:block}
+.field input[type=number],.field input[type=text],.field select{width:100%;height:36px;padding:0 11px;border:0.5px solid var(--border-md);border-radius:var(--rsm);background:var(--surface);color:var(--t1);font-size:13px;font-family:inherit;outline:none;transition:border-color .15s;-moz-appearance:textfield}
+.field input[type=number]::-webkit-outer-spin-button,.field input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none}
+.field input:focus,.field select:focus{border-color:#2563EB;box-shadow:0 0 0 3px rgba(37,99,235,.1)}
+.fr{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+
+/* buttons */
+.btn{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-family:inherit;font-weight:500;padding:8px 16px;border-radius:var(--rsm);cursor:pointer;transition:all .15s;border:0.5px solid var(--border-md);background:var(--surface);color:var(--t1)}
+.btn:hover{background:var(--s2)}
+.btn.primary{background:#374151;color:#fff;border-color:#374151}
+.btn.primary:hover{background:#1F2937}
+.btn.ghost{border-color:transparent;color:var(--t2)}
+.btn.ghost:hover{background:var(--s2)}
+.btn-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:4px}
+
+/* output */
+.out-placeholder{padding:48px 24px;text-align:center;color:var(--t3);font-size:13px}
+.out-placeholder i{font-size:32px;display:block;margin-bottom:10px;opacity:.35}
+.score-hero{padding:18px 16px;border-bottom:0.5px solid var(--border);display:flex;align-items:center;gap:18px}
+.score-num{font-family:'DM Serif Display',Georgia,serif;font-size:60px;line-height:1}
+.score-right{flex:1}
+.grade-pill{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:500;padding:4px 12px;border-radius:20px;margin-bottom:9px;border:0.5px solid}
+.bar-wrap{height:5px;background:var(--bg);border-radius:3px;overflow:hidden;margin-bottom:5px}
+.bar-fill{height:100%;border-radius:3px;transition:width .7s cubic-bezier(.4,0,.2,1)}
+.score-cap{font-size:11px;color:var(--t3)}
+.layer-row{display:flex;align-items:center;gap:10px;padding:10px 16px;border-bottom:0.5px solid var(--border)}
+.layer-row:last-child{border-bottom:none}
+.lr-name{font-size:12px;color:var(--t1);width:100px;flex-shrink:0}
+.lr-bar{flex:1;height:4px;background:var(--bg);border-radius:2px;overflow:hidden}
+.lr-bar-fill{height:100%;border-radius:2px}
+.lr-score{font-size:13px;font-weight:600;min-width:26px;text-align:right}
+.lr-contrib{font-size:10px;color:var(--t3);min-width:38px;text-align:right}
+.ind-sec{padding:10px 16px;border-bottom:0.5px solid var(--border)}
+.ind-sec:last-child{border-bottom:none}
+.ind-sec-title{font-size:10px;font-weight:500;color:var(--t3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;display:flex;align-items:center;gap:5px}
+.ind-row{display:flex;align-items:center;gap:9px;padding:3px 0}
+.ind-name{font-size:11px;color:var(--t2);flex:1}
+.ind-mini{width:72px;height:3px;background:var(--bg);border-radius:2px;overflow:hidden}
+.ind-mini-fill{height:100%;border-radius:2px}
+.ind-score{font-size:11px;font-weight:500;min-width:22px;text-align:right}
+.ind-w{font-size:10px;color:var(--t3);min-width:26px;text-align:right}
+.formula-box{padding:10px 16px;background:var(--s2);border-top:0.5px solid var(--border);font-size:10px;color:var(--t3);font-family:'SF Mono','Fira Code',monospace;line-height:1.9}
+.formula-box strong{color:var(--t2);font-weight:500}
+.insight-box{margin:0 16px 12px;padding:9px 12px;border-radius:var(--rsm);font-size:12px;line-height:1.65;border:0.5px solid}
+
+/* upload */
+.upload-zone{border:1.5px dashed var(--border-md);border-radius:var(--r);padding:32px 20px;text-align:center;cursor:pointer;transition:all .2s;background:var(--s2)}
+.upload-zone:hover,.upload-zone.drag{border-color:#2563EB;background:#EFF4FF}
+.upload-zone i{font-size:32px;color:var(--t3);display:block;margin-bottom:8px}
+.upload-zone p{font-size:13px;color:var(--t2);margin-bottom:3px}
+.upload-zone small{font-size:11px;color:var(--t3)}
+#file-input{display:none}
+.col-list{display:flex;flex-wrap:wrap;gap:4px;margin-top:8px}
+.col-pill{font-size:10px;padding:2px 7px;border-radius:20px;background:rgba(37,99,235,.1);color:#1D4ED8;border:0.5px solid rgba(37,99,235,.2)}
+.prog-bar{height:4px;background:var(--border);border-radius:2px;overflow:hidden;margin:10px 0;display:none}
+.prog-fill{height:100%;background:#2563EB;border-radius:2px;transition:width .4s ease}
+
+/* ranking */
+.rank-hd{display:grid;grid-template-columns:36px 1fr 80px repeat(7,56px);gap:6px;padding:7px 14px;font-size:10px;color:var(--t3);font-weight:500;text-transform:uppercase;letter-spacing:.04em;border-bottom:0.5px solid var(--border);background:var(--s2)}
+.rank-row{display:grid;grid-template-columns:36px 1fr 80px repeat(7,56px);gap:6px;padding:10px 14px;border-bottom:0.5px solid var(--border);align-items:center;cursor:pointer;transition:background .12s}
+.rank-row:last-child{border-bottom:none}
+.rank-row:hover{background:var(--s2)}
+.rank-num{font-size:14px;font-weight:600;color:var(--t3);text-align:center}
+.rn-gold{color:#B45309}.rn-silver{color:var(--t2)}.rn-bronze{color:#92400E}
+.rank-name{font-size:13px;font-weight:500;color:var(--t1)}
+.rank-mkt{font-size:11px;color:var(--t2);margin-top:1px}
+.str-tags{display:flex;flex-wrap:wrap;gap:3px;margin-top:3px}
+.str-tag{font-size:9px;padding:1px 6px;border-radius:20px;border:0.5px solid;font-weight:500}
+.rank-total{font-family:'DM Serif Display',Georgia,serif;font-size:20px;text-align:center}
+.rank-dim{text-align:center;font-size:12px;font-weight:500}
+.dim-bar{height:3px;border-radius:2px;margin-top:3px}
+
+/* modal */
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:100;align-items:center;justify-content:center;padding:20px}
+.overlay.open{display:flex}
+.modal{background:var(--surface);border-radius:var(--rlg);max-width:500px;width:100%;max-height:85vh;overflow-y:auto;border:0.5px solid var(--border-md)}
+.modal-hd{display:flex;align-items:center;gap:10px;padding:14px 18px;border-bottom:0.5px solid var(--border);position:sticky;top:0;background:var(--surface);z-index:1}
+.modal-body{padding:14px 18px}
+
+/* alert */
+.alert{padding:10px 14px;border-radius:var(--rsm);font-size:12px;margin-bottom:12px;display:none;align-items:flex-start;gap:8px}
+.alert.show{display:flex}
+.alert.error{background:#FEF2F2;color:#991B1B;border:0.5px solid rgba(185,28,28,.2)}
+
+@media(max-width:680px){
+  .layout{grid-template-columns:1fr}
+  .rank-hd,.rank-row{grid-template-columns:28px 1fr 60px repeat(3,44px)}
+  .rank-hd span:nth-child(n+7),.rank-row>*:nth-child(n+7){display:none}
+  .score-num{font-size:46px}
+}
+</style>
+</head>
+<body>
+<div class="shell">
+
+<div class="page-title">
+  <i class="ti ti-car" style="font-size:20px;color:#374151" aria-hidden="true"></i>
+  欧洲车企 KOL 商业价值评估模型
+  <span class="badge b-amber">v3.0</span>
+  <span class="badge b-green">7维度重构版</span>
+</div>
+<div class="page-sub">依据 KOL业务组模型构建报告重构 · 受众匹配 · 内容专业度 · 互动质量 · VOC反馈 · 商业效率 · 品牌适配 · 可执行性</div>
+
+<div class="tabs">
+  <button class="tab active" onclick="switchTab('upload',this)"><i class="ti ti-table-import" style="font-size:15px" aria-hidden="true"></i>批量上传</button>
+  <button class="tab" onclick="switchTab('manual',this)"><i class="ti ti-forms" style="font-size:15px" aria-hidden="true"></i>手动录入</button>
+</div>
+
+<!-- ══════ 批量上传 Tab ══════ -->
+<div id="tab-upload">
+  <div class="card">
+    <div style="display:flex;align-items:flex-start;gap:12px;padding:12px 16px;background:#EFF4FF;border-bottom:0.5px solid rgba(37,99,235,.15)">
+      <i class="ti ti-info-circle" style="font-size:18px;color:#2563EB;flex-shrink:0;margin-top:2px" aria-hidden="true"></i>
+      <div>
+        <p style="font-size:12px;color:#1D4ED8;line-height:1.65"><strong>第一步下载模板，按列填写，再上传。</strong> 共 <strong>28 列</strong>，第一行为标题行。选项型字段请严格按括号内的英文代码填写。</p>
+        <div class="col-list">
+          <span class="col-pill">KOL名称</span><span class="col-pill">主要市场(DE/GB/FR/MULTI)</span><span class="col-pill">内容方向</span><span class="col-pill">目标品牌类型</span>
+          <span class="col-pill">目标市场受众%</span><span class="col-pill">语言能力(1/2/3)</span><span class="col-pill">汽车兴趣受众%</span><span class="col-pill">25-55岁受众%</span><span class="col-pill">收入水平(high/mid/low)</span>
+          <span class="col-pill">汽车内容专注%</span><span class="col-pill">测评深度(deep/mid/surface)</span><span class="col-pill">专业可信度(high/mid/low)</span>
+          <span class="col-pill">ERR%</span><span class="col-pill">完播率%</span><span class="col-pill">评论质量(high/mid/low)</span><span class="col-pill">分享收藏比%</span>
+          <span class="col-pill">VOC话题深度(high/mid/low)</span><span class="col-pill">VOC负面识别(high/mid/low)</span><span class="col-pill">历史车主反馈(yes/sometimes/no)</span>
+          <span class="col-pill">CPM报价€</span><span class="col-pill">行业基准CPM€</span><span class="col-pill">内容复用权(full/limited/none)</span><span class="col-pill">排他要求(none/soft/hard)</span>
+          <span class="col-pill">品牌调性匹配(match/neutral/conflict)</span><span class="col-pill">历史合作调性(match/neutral/conflict)</span><span class="col-pill">内容风格一致性(high/mid/low)</span>
+          <span class="col-pill">履约率%</span><span class="col-pill">Brief配合度(high/mid/low)</span><span class="col-pill">数据复盘意愿(active/passive/refuse)</span>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <button class="btn" style="background:#2563EB;color:#fff;border-color:#2563EB" onclick="downloadTemplate()">
+        <i class="ti ti-download" style="font-size:15px" aria-hidden="true"></i>下载 Excel 模板
+      </button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-hd"><div class="dot" style="background:#2563EB"></div><span class="card-title">上传 Excel 文件</span></div>
+    <div class="card-body">
+      <div class="upload-zone" id="upload-zone" onclick="document.getElementById('file-input').click()" ondragover="event.preventDefault();this.classList.add('drag')" ondragleave="this.classList.remove('drag')" ondrop="handleDrop(event)">
+        <i class="ti ti-file-spreadsheet" aria-hidden="true"></i>
+        <p>点击选择文件，或将 Excel 拖拽至此</p>
+        <small>支持 .xlsx / .xls</small>
+      </div>
+      <input type="file" id="file-input" accept=".xlsx,.xls" onchange="handleFile(this.files[0])">
+      <div class="prog-bar" id="prog-wrap"><div class="prog-fill" id="prog-fill" style="width:0%"></div></div>
+      <div id="upload-status" style="font-size:12px;color:var(--t3);margin-top:6px"></div>
+    </div>
+  </div>
+
+  <div id="ranking-output" style="display:none">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:8px">
+      <div style="font-size:14px;font-weight:500" id="ranking-title">评分排名</div>
+      <button class="btn ghost" onclick="exportRanking()"><i class="ti ti-table-export" style="font-size:14px" aria-hidden="true"></i>导出排名结果</button>
+    </div>
+    <div class="card">
+      <div class="rank-hd">
+        <span style="text-align:center">排名</span><span>KOL</span><span style="text-align:center">综合</span>
+        <span style="text-align:center">受众</span><span style="text-align:center">内容</span><span style="text-align:center">互动</span>
+        <span style="text-align:center">VOC</span><span style="text-align:center">效率</span><span style="text-align:center">品牌</span><span style="text-align:center">执行</span>
+      </div>
+      <div id="ranking-rows"></div>
+    </div>
+    <div style="font-size:11px;color:var(--t3);margin-top:5px">点击任意行查看完整评分明细与优势分析</div>
+  </div>
+</div>
+
+<!-- ══════ 手动录入 Tab ══════ -->
+<div id="tab-manual" style="display:none">
+<div class="alert error" id="alert-box"><i class="ti ti-alert-circle" style="font-size:16px;flex-shrink:0;margin-top:1px" aria-hidden="true"></i><span id="alert-msg"></span></div>
+<div class="layout">
+<div>
+
+  <!-- 基本信息 -->
+  <div class="card">
+    <div class="card-hd"><div class="dot" style="background:var(--t3)"></div><span class="card-title">基本信息</span></div>
+    <div class="card-body">
+      <div class="field"><label>KOL 名称</label><input type="text" id="m-name" placeholder=""></div>
+      <div class="fr">
+        <div class="field"><label>主要市场</label><select id="m-country"><option value="DE">🇩🇪 德国</option><option value="GB">🇬🇧 英国</option><option value="FR">🇫🇷 法国</option><option value="MULTI">多国</option></select></div>
+        <div class="field"><label>内容方向</label><select id="m-niche"><option value="review">深度测评</option><option value="ev">新能源/EV</option><option value="luxury">豪华/超跑</option><option value="family">家用/SUV</option><option value="tech">汽车科技</option><option value="lifestyle">生活方式</option></select></div>
+      </div>
+      <div class="field"><label>目标品牌类型</label><select id="m-brandtype"><option value="premium">豪华品牌（BBA）</option><option value="mainstream">主流品牌（大众/标致）</option><option value="ev-brand">新兴新能源品牌</option></select></div>
+    </div>
+  </div>
+
+  <!-- 1. 受众匹配度 -->
+  <div class="card">
+    <div class="card-hd"><div class="dot" style="background:#2563EB"></div><span class="card-title">① 受众匹配度</span><span style="font-size:11px;color:var(--t3)">权重 20%</span></div>
+    <div class="card-body">
+      <div class="fr">
+        <div class="field"><label>目标市场（英法德）受众占比 %</label><input type="number" id="m-geo" min="0" max="100"></div>
+        <div class="field"><label>语言内容能力</label><select id="m-lang"><option value="3">三语（EN/FR/DE）</option><option value="2">双语</option><option value="1">单语</option></select></div>
+      </div>
+      <div class="fr">
+        <div class="field"><label>汽车/EV 兴趣受众占比 %</label><span class="hint">第三方工具数据，无数据填 50</span><input type="number" id="m-autointerest" min="0" max="100"></div>
+        <div class="field"><label>25–55 岁受众占比 %</label><input type="number" id="m-age" min="0" max="100"></div>
+      </div>
+      <div class="field"><label>受众收入水平</label><select id="m-income"><option value="high">高（年收 €60K+）</option><option value="mid">中（€30–60K）</option><option value="low">低 / 未知</option></select></div>
+    </div>
+  </div>
+
+  <!-- 2. 内容相关性与专业度 -->
+  <div class="card">
+    <div class="card-hd"><div class="dot" style="background:#059669"></div><span class="card-title">② 内容相关性与专业度</span><span style="font-size:11px;color:var(--t3)">权重 15%</span></div>
+    <div class="card-body">
+      <div class="fr">
+        <div class="field"><label>汽车/EV 内容专注度 %</label><input type="number" id="m-focus" min="0" max="100"></div>
+        <div class="field"><label>测评深度</label><select id="m-depth"><option value="deep">深度（含技术参数/驾驶感受）</option><option value="mid">中度（常规体验）</option><option value="surface">浅度（外观展示）</option></select></div>
+      </div>
+      <div class="field"><label>专业可信度</label><select id="m-credibility"><option value="high">高（有行业背景/媒体合作）</option><option value="mid">中（有一定专业性）</option><option value="low">低（无明显专业背书）</option></select></div>
+    </div>
+  </div>
+
+  <!-- 3. 互动质量 -->
+  <div class="card">
+    <div class="card-hd"><div class="dot" style="background:#7C3AED"></div><span class="card-title">③ 互动质量</span><span style="font-size:11px;color:var(--t3)">权重 15%</span></div>
+    <div class="card-body">
+      <div class="fr">
+        <div class="field"><label>平均互动率 ERR %</label><span class="hint">汽车垂类健康值 1.5–3%</span><input type="number" id="m-err" min="0" max="100" step="0.1"></div>
+        <div class="field"><label>视频平均完播率 %</label><span class="hint">健康值 40–60%</span><input type="number" id="m-completion" min="0" max="100"></div>
+      </div>
+      <div class="fr">
+        <div class="field"><label>评论质量与真实性</label><select id="m-comment"><option value="high">高（大量真实长评论/问题型评论）</option><option value="mid">中（有一定真实讨论）</option><option value="low">低（以表情/点赞为主）</option></select></div>
+        <div class="field"><label>分享/收藏占互动比 %</label><span class="hint">传播系数，健康值 15–20%</span><input type="number" id="m-sharesave" min="0" max="100"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 4. VOC 反馈价值 -->
+  <div class="card">
+    <div class="card-hd"><div class="dot" style="background:#DC2626"></div><span class="card-title">④ VOC 反馈价值</span><span style="font-size:11px;color:var(--t3)">权重 15% · 新增</span></div>
+    <div class="card-body">
+      <div class="field"><label>评论区汽车话题深度</label><span class="hint">是否有续航/充电/价格/经销商/售后等实质讨论</span><select id="m-vocdepth"><option value="high">高（大量深度汽车话题讨论）</option><option value="mid">中（偶有实质汽车评论）</option><option value="low">低（以泛化互动为主）</option></select></div>
+      <div class="field"><label>负面 VOC 识别价值</label><span class="hint">能否捕获对车企有价值的真实负面反馈</span><select id="m-vocneg"><option value="high">高（有清晰的用车痛点/改进建议）</option><option value="mid">中（偶有可参考的负面声音）</option><option value="low">低（无实质负面反馈）</option></select></div>
+      <div class="field"><label>历史内容是否产出车主反馈</label><span class="hint">过往合作是否有可分析的车主 VOC 数据产出</span><select id="m-vochistory"><option value="yes">是（有完整 VOC 复盘记录）</option><option value="sometimes">偶有（部分内容有反馈）</option><option value="no">暂无</option></select></div>
+    </div>
+  </div>
+
+  <!-- 5. 商业效率 -->
+  <div class="card">
+    <div class="card-hd"><div class="dot" style="background:#D97706"></div><span class="card-title">⑤ 商业效率</span><span style="font-size:11px;color:var(--t3)">权重 15%</span></div>
+    <div class="card-body">
+      <div class="fr">
+        <div class="field"><label>CPM 报价 €（每千次曝光）</label><input type="number" id="m-cpm" min="0" step="0.5"></div>
+        <div class="field"><label>行业基准 CPM €</label><span class="hint">同类 KOL 市场均价，默认 €20</span><input type="number" id="m-benchcpm" min="0" step="0.5" placeholder="20"></div>
+      </div>
+      <div class="fr">
+        <div class="field"><label>内容二次复用权</label><select id="m-reuse"><option value="full">全权复用（无期限/无限场景）</option><option value="limited">限制复用（有期限或场景限制）</option><option value="none">不允许复用</option></select></div>
+        <div class="field"><label>排他要求</label><select id="m-exclusive"><option value="none">无排他</option><option value="soft">软排他（同类品牌）</option><option value="hard">强排他（全品类）</option></select></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 6. 品牌适配度 -->
+  <div class="card">
+    <div class="card-hd"><div class="dot" style="background:#DB2777"></div><span class="card-title">⑥ 品牌适配度</span><span style="font-size:11px;color:var(--t3)">权重 10% · 新增</span></div>
+    <div class="card-body">
+      <div class="field"><label>KOL 人设与目标品牌调性匹配度</label><select id="m-brandtone"><option value="match">高度匹配（技术/家庭/高端/年轻与品牌一致）</option><option value="neutral">中性（人设通用，无明显冲突）</option><option value="conflict">不匹配（人设与品牌调性相悖）</option></select></div>
+      <div class="field"><label>历史合作品牌调性</label><select id="m-histtone"><option value="match">以同类或同级别品牌为主</option><option value="neutral">品类混合，无明显倾向</option><option value="conflict">以低端或冲突品牌为主</option></select></div>
+      <div class="field"><label>内容风格一致性</label><select id="m-styleconsist"><option value="high">高（长期稳定的内容调性）</option><option value="mid">中（有一定波动）</option><option value="low">低（风格多变，缺乏一致性）</option></select></div>
+    </div>
+  </div>
+
+  <!-- 7. 合作可执行性 -->
+  <div class="card">
+    <div class="card-hd"><div class="dot" style="background:#0891B2"></div><span class="card-title">⑦ 合作可执行性</span><span style="font-size:11px;color:var(--t3)">权重 10%</span></div>
+    <div class="card-body">
+      <div class="fr">
+        <div class="field"><label>历史履约率 %</label><span class="hint">按时交付次数/总合作次数</span><input type="number" id="m-fulfill" min="0" max="100"></div>
+        <div class="field"><label>Brief 配合意愿</label><select id="m-brief"><option value="high">高（主动配合修改，接受审核）</option><option value="mid">中（基本配合，偶有摩擦）</option><option value="low">低（排斥修改意见）</option></select></div>
+      </div>
+      <div class="fr">
+        <div class="field"><label>复盘数据提供意愿</label><select id="m-dataready"><option value="active">主动提供完整数据</option><option value="passive">需要索取，被动提供</option><option value="refuse">拒绝或无法提供</option></select></div>
+        <div class="field"><label>合同签约灵活度</label><select id="m-contract"><option value="flexible">灵活（愿意协商条款）</option><option value="normal">一般（接受标准条款）</option><option value="rigid">强硬（坚持己方条款）</option></select></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="btn-row">
+    <button class="btn primary" onclick="calcManual()"><i class="ti ti-calculator" style="font-size:15px" aria-hidden="true"></i>计算评分</button>
+    <button class="btn ghost" onclick="clearAll()"><i class="ti ti-refresh" style="font-size:15px" aria-hidden="true"></i>清空</button>
+  </div>
+
+</div><!-- /left -->
+
+<div>
+  <div class="card">
+    <div class="card-hd"><div class="dot" style="background:var(--t3)"></div><span class="card-title" id="m-out-name">评分结果</span><span id="m-out-date" style="font-size:11px;color:var(--t3)"></span></div>
+    <div id="m-out-body"><div class="out-placeholder"><i class="ti ti-chart-radar" aria-hidden="true"></i>填写左侧数据后<br>点击「计算评分」</div></div>
+  </div>
+</div>
+
+</div><!-- /layout -->
+</div><!-- /tab-manual -->
+
+<!-- 详情弹窗 -->
+<div class="overlay" id="overlay" onclick="if(event.target===this)closeModal()">
+  <div class="modal" id="modal"></div>
+</div>
+
+</div><!-- /shell -->
+<script>
+/* ═══ LAYER DEFINITIONS ═══ */
+const LAYERS=[
+  {id:'audience',  name:'受众匹配度',    color:'#2563EB', weight:.20},
+  {id:'content',   name:'内容专业度',    color:'#059669', weight:.15},
+  {id:'engage',    name:'互动质量',      color:'#7C3AED', weight:.15},
+  {id:'voc',       name:'VOC反馈价值',   color:'#DC2626', weight:.15},
+  {id:'commercial',name:'商业效率',      color:'#D97706', weight:.15},
+  {id:'brand',     name:'品牌适配度',    color:'#DB2777', weight:.10},
+  {id:'exec',      name:'合作可执行性',  color:'#0891B2', weight:.10},
+];
+
+const COL_MAP=['name','country','niche','brandType','geo','lang','autoInterest','age','income',
+  'focus','depth','credibility','err','completion','commentQuality','shareSave',
+  'vocDepth','vocNeg','vocHistory','cpm','benchCpm','reuse','exclusive',
+  'brandTone','histTone','styleConsist','fulfill','briefCoop','dataReady'];
+
+function clamp(v,a,b){return Math.min(Math.max(v,a),b)}
+function q3(v){return v==='high'?90:v==='mid'?60:25}
+function calcLayer(inds){return Math.round(inds.reduce((s,i)=>s+i.score*i.weight/100,0))}
+
+/* ═══ SCORING ENGINE ═══ */
+function scoreKOL(d){
+  // 1. 受众匹配度 (20%)
+  const geoScore=clamp(d.geo||0,0,100);
+  const langScore=d.lang==3?100:d.lang==2?65:30;
+  const autoIntScore=clamp(d.autoInterest||50,0,100);
+  const incomeScore=d.income==='high'?95:d.income==='mid'?65:35;
+  const ageScore=clamp(d.age||0,0,100);
+  const buyerScore=Math.round(incomeScore*.5+ageScore*.5);
+  const audience=[
+    {name:'目标市场受众覆盖',score:Math.round(geoScore),weight:25},
+    {name:'目标语言内容能力',score:langScore,weight:20},
+    {name:'汽车/EV兴趣受众',score:Math.round(autoIntScore),weight:20},
+    {name:'潜在购车人群覆盖',score:buyerScore,weight:20},
+    {name:'车型目标人群匹配',score:Math.round((geoScore+autoIntScore)/2),weight:15},
+  ];
+
+  // 2. 内容相关性与专业度 (15%)
+  const focusScore=clamp(d.focus||0,0,100);
+  const depthScore=d.depth==='deep'?95:d.depth==='mid'?65:30;
+  const credScore=q3(d.credibility);
+  const content=[
+    {name:'汽车/EV内容专注度',score:Math.round(focusScore),weight:35},
+    {name:'测评深度',score:depthScore,weight:35},
+    {name:'专业可信度',score:credScore,weight:30},
+  ];
+
+  // 3. 互动质量 (15%)
+  const errScore=clamp(Math.round(((d.err||0)/3)*100),0,100);
+  const compScore=clamp(Math.round(((d.completion||0)/60)*100),0,100);
+  const commentScore=q3(d.commentQuality);
+  const shareScore=clamp(Math.round(((d.shareSave||0)/20)*100),0,100);
+  const engage=[
+    {name:'真实互动率 ERR',score:errScore,weight:30},
+    {name:'视频完播率',score:compScore,weight:25},
+    {name:'评论质量与真实性',score:commentScore,weight:30},
+    {name:'分享/收藏传播系数',score:Math.round(shareScore),weight:15},
+  ];
+
+  // 4. VOC 反馈价值 (15%)
+  const vocDepthScore=q3(d.vocDepth);
+  const vocNegScore=q3(d.vocNeg);
+  const vocHistScore=d.vocHistory==='yes'?90:d.vocHistory==='sometimes'?60:20;
+  const voc=[
+    {name:'评论区汽车话题深度',score:vocDepthScore,weight:40},
+    {name:'负面VOC识别价值',score:vocNegScore,weight:30},
+    {name:'历史车主反馈产出',score:vocHistScore,weight:30},
+  ];
+
+  // 5. 商业效率 (15%)
+  const benchCpm=parseFloat(d.benchCpm)||20;
+  const cpm=parseFloat(d.cpm)||benchCpm;
+  const ratio=cpm/benchCpm;
+  let cpmScore;
+  if(ratio<=0.8)cpmScore=100;
+  else if(ratio<=1.0)cpmScore=Math.round(100-(ratio-.8)*150);
+  else if(ratio<=1.5)cpmScore=Math.round(70-(ratio-1)*80);
+  else cpmScore=20;
+  cpmScore=clamp(cpmScore,0,100);
+  const reuseScore=d.reuse==='full'?95:d.reuse==='limited'?60:20;
+  const exclScore=d.exclusive==='none'?90:d.exclusive==='soft'?65:25;
+  const commercial=[
+    {name:'CPM/报价性价比',score:cpmScore,weight:40},
+    {name:'内容二次复用权',score:reuseScore,weight:35},
+    {name:'排他要求合理性',score:exclScore,weight:25},
+  ];
+
+  // 6. 品牌适配度 (10%)
+  const toneScore=d.brandTone==='match'?90:d.brandTone==='neutral'?65:20;
+  const histToneScore=d.histTone==='match'?90:d.histTone==='neutral'?65:20;
+  const styleScore=q3(d.styleConsist);
+  const brand=[
+    {name:'品牌调性匹配度',score:toneScore,weight:50},
+    {name:'历史合作品牌调性',score:histToneScore,weight:30},
+    {name:'内容风格一致性',score:styleScore,weight:20},
+  ];
+
+  // 7. 合作可执行性 (10%)
+  const fulfillScore=clamp(d.fulfill||0,0,100);
+  const briefScore=q3(d.briefCoop);
+  const dataScore=d.dataReady==='active'?90:d.dataReady==='passive'?60:15;
+  const exec=[
+    {name:'历史履约率',score:Math.round(fulfillScore),weight:35},
+    {name:'Brief配合意愿',score:briefScore,weight:25},
+    {name:'复盘数据提供意愿',score:dataScore,weight:25},
+    {name:'合同签约灵活度',score:65,weight:15},
+  ];
+
+  const inds=[audience,content,engage,voc,commercial,brand,exec];
+  const layerScores=inds.map(ind=>calcLayer(ind));
+  const total=Math.round(layerScores.reduce((s,v,i)=>s+v*LAYERS[i].weight,0));
+  return{total,layerScores,inds};
+}
+
+/* ═══ GRADE ═══ */
+function gradeKOL(s){
+  if(s>=85)return{label:'强烈推荐合作',color:'#047857',bg:'#ECFDF5',bc:'rgba(4,120,87,.25)'};
+  if(s>=70)return{label:'推荐合作',color:'#2563EB',bg:'#EFF4FF',bc:'rgba(37,99,235,.25)'};
+  if(s>=55)return{label:'可考虑合作',color:'#D97706',bg:'#FFFBEB',bc:'rgba(217,119,6,.25)'};
+  if(s>=40)return{label:'谨慎评估',color:'#D97706',bg:'#FFFBEB',bc:'rgba(217,119,6,.25)'};
+  return{label:'不建议合作',color:'#B91C1C',bg:'#FEF2F2',bc:'rgba(185,28,28,.25)'};
+}
+
+/* ═══ STRENGTHS ═══ */
+function getStrengths(result){
+  const all=[];
+  result.inds.forEach((layer,li)=>{
+    layer.forEach(ind=>{if(ind.score>=80)all.push({label:ind.name,score:ind.score,color:LAYERS[li].color})});
+  });
+  all.sort((a,b)=>b.score-a.score);
+  return all.slice(0,3);
+}
+
+/* ═══ RENDER OUTPUT ═══ */
+function renderOutput(name,result,container,dateStr){
+  const g=gradeKOL(result.total);
+  const formulaParts=result.layerScores.map((s,i)=>`${s}×${LAYERS[i].weight*100}%`).join('+');
+  const insight=buildInsight(result);
+  container.innerHTML=`
+    <div class="score-hero">
+      <div class="score-num" style="color:${g.color}">${result.total}</div>
+      <div class="score-right">
+        <div class="grade-pill" style="background:${g.bg};color:${g.color};border-color:${g.bc}">
+          <i class="ti ti-circle-check" style="font-size:13px" aria-hidden="true"></i>${g.label}
+        </div>
+        <div class="bar-wrap"><div class="bar-fill" style="width:${result.total}%;background:${g.color}"></div></div>
+        <div class="score-cap">商业价值综合评分 / 满分 100${dateStr?' · '+dateStr:''}</div>
+      </div>
+    </div>
+    <div>${result.layerScores.map((s,i)=>{
+      const m=LAYERS[i];const contrib=Math.round(s*m.weight);
+      return`<div class="layer-row">
+        <div class="lr-name">${m.name}</div>
+        <div class="lr-bar"><div class="lr-bar-fill" style="width:${s}%;background:${m.color}"></div></div>
+        <div class="lr-score" style="color:${m.color}">${s}</div>
+        <div class="lr-contrib">→ ${contrib}分</div>
+      </div>`;}).join('')}</div>
+    <div class="insight-box" style="background:${g.bg};color:${g.color};border-color:${g.bc}">
+      <div style="font-size:11px;font-weight:500;margin-bottom:3px;opacity:.8"><i class="ti ti-bulb" style="font-size:12px;vertical-align:-1px;margin-right:4px" aria-hidden="true"></i>模型建议</div>
+      ${insight}
+    </div>
+    ${result.inds.map((layer,li)=>{
+      const m=LAYERS[li];
+      return`<div class="ind-sec">
+        <div class="ind-sec-title">
+          <span style="width:7px;height:7px;border-radius:50%;background:${m.color};display:inline-block"></span>
+          ${m.name} · ${result.layerScores[li]}分 · 权重${m.weight*100}%
+        </div>
+        ${layer.map(ind=>`<div class="ind-row">
+          <span class="ind-name">${ind.name}</span>
+          <div class="ind-mini"><div class="ind-mini-fill" style="width:${ind.score}%;background:${m.color}"></div></div>
+          <span class="ind-score" style="color:${ind.score>=75?m.color:ind.score>=50?'var(--t1)':'var(--t3)'}">${ind.score}</span>
+          <span class="ind-w">${ind.weight}%</span>
+        </div>`).join('')}
+      </div>`;}).join('')}
+    <div class="formula-box"><strong>计算过程：</strong><br>总分 = ${formulaParts} = <strong>${result.total}</strong></div>
+  `;
+}
+
+function buildInsight(result){
+  const layerScores=result.layerScores;
+  const weakIdx=layerScores.reduce((minI,v,i)=>v*LAYERS[i].weight<layerScores[minI]*LAYERS[minI].weight?i:minI,0);
+  const msgs=['受众画像与欧洲购车人群匹配度偏低，建议核查受众地理和收入数据','内容专业度不足，测评深度是车企 KOL 的核心门槛','互动质量不理想，需关注真实评论比例和完播率','VOC 反馈价值偏低，该 KOL 对车企市场调研贡献有限','CPM 性价比或版权条款偏差较大，建议重新议价','品牌调性与目标车企定位存在落差，需评估合作风险','执行配合度历史表现欠佳，建议加强合同约束条款'];
+  if(result.total>=70)return'各项指标较为均衡，可进入商务洽谈阶段。重点关注'+LAYERS[weakIdx].name+'的提升空间。';
+  return msgs[weakIdx]||'建议综合评估后决定是否进入下一阶段。';
+}
+
+/* ═══ MANUAL TAB ═══ */
+function sel(id){return document.getElementById(id).value}
+function numM(id){return parseFloat(document.getElementById(id).value)||0}
+
+function calcManual(){
+  const name=document.getElementById('m-name').value.trim();
+  if(!name){showAlert('请填写 KOL 名称');return}
+  const d={
+    country:sel('m-country'),niche:sel('m-niche'),brandType:sel('m-brandtype'),
+    geo:numM('m-geo'),lang:parseInt(sel('m-lang')),autoInterest:numM('m-autointerest'),
+    age:numM('m-age'),income:sel('m-income'),
+    focus:numM('m-focus'),depth:sel('m-depth'),credibility:sel('m-credibility'),
+    err:numM('m-err'),completion:numM('m-completion'),commentQuality:sel('m-comment'),shareSave:numM('m-sharesave'),
+    vocDepth:sel('m-vocdepth'),vocNeg:sel('m-vocneg'),vocHistory:sel('m-vochistory'),
+    cpm:numM('m-cpm'),benchCpm:numM('m-benchcpm')||20,reuse:sel('m-reuse'),exclusive:sel('m-exclusive'),
+    brandTone:sel('m-brandtone'),histTone:sel('m-histtone'),styleConsist:sel('m-styleconsist'),
+    fulfill:numM('m-fulfill'),briefCoop:sel('m-brief'),dataReady:sel('m-dataready'),
+  };
+  const result=scoreKOL(d);
+  document.getElementById('m-out-name').textContent=name;
+  document.getElementById('m-out-date').textContent=new Date().toLocaleDateString('zh-CN');
+  renderOutput(name,result,document.getElementById('m-out-body'),new Date().toLocaleDateString('zh-CN'));
+}
+
+function showAlert(msg){
+  const el=document.getElementById('alert-box');
+  document.getElementById('alert-msg').textContent=msg;
+  el.classList.add('show');setTimeout(()=>el.classList.remove('show'),4000);
+}
+function clearAll(){
+  document.querySelectorAll('#tab-manual input[type=number],#tab-manual input[type=text]').forEach(el=>el.value='');
+  document.getElementById('m-out-name').textContent='评分结果';
+  document.getElementById('m-out-date').textContent='';
+  document.getElementById('m-out-body').innerHTML='<div class="out-placeholder"><i class="ti ti-car" aria-hidden="true"></i>填写左侧数据后<br>点击「计算评分」</div>';
+}
+
+/* ═══ BATCH UPLOAD ═══ */
+let rankingData=[];
+function handleDrop(e){e.preventDefault();document.getElementById('upload-zone').classList.remove('drag');const f=e.dataTransfer.files[0];if(f)handleFile(f)}
+function handleFile(file){
+  if(!file)return;
+  const prog=document.getElementById('prog-wrap');const fill=document.getElementById('prog-fill');
+  const status=document.getElementById('upload-status');
+  prog.style.display='block';fill.style.width='20%';status.textContent='正在读取文件…';
+  const reader=new FileReader();
+  reader.onload=e=>{
+    try{
+      fill.style.width='50%';
+      const wb=XLSX.read(e.target.result,{type:'array'});
+      const ws=wb.Sheets[wb.SheetNames[0]];
+      const rows=XLSX.utils.sheet_to_json(ws,{header:1,defval:''});
+      fill.style.width='70%';
+      if(rows.length<2){status.textContent='未找到数据行';fill.style.width='0%';return}
+      const dataRows=rows.slice(1).filter(r=>r[0]);
+      if(!dataRows.length){status.textContent='无有效数据行';fill.style.width='0%';return}
+      rankingData=dataRows.map(row=>{
+        const raw={};COL_MAP.forEach((k,i)=>raw[k]=row[i]);
+        const d={
+          name:String(raw.name||'未知'),country:String(raw.country||'DE'),
+          niche:String(raw.niche||'review'),brandType:String(raw.brandType||'mainstream'),
+          geo:Number(raw.geo)||0,lang:Number(raw.lang)||1,autoInterest:Number(raw.autoInterest)||50,
+          age:Number(raw.age)||0,income:String(raw.income||'mid'),
+          focus:Number(raw.focus)||0,depth:String(raw.depth||'mid'),credibility:String(raw.credibility||'mid'),
+          err:Number(raw.err)||0,completion:Number(raw.completion)||0,
+          commentQuality:String(raw.commentQuality||'mid'),shareSave:Number(raw.shareSave)||0,
+          vocDepth:String(raw.vocDepth||'mid'),vocNeg:String(raw.vocNeg||'mid'),vocHistory:String(raw.vocHistory||'sometimes'),
+          cpm:Number(raw.cpm)||20,benchCpm:Number(raw.benchCpm)||20,
+          reuse:String(raw.reuse||'limited'),exclusive:String(raw.exclusive||'soft'),
+          brandTone:String(raw.brandTone||'neutral'),histTone:String(raw.histTone||'neutral'),
+          styleConsist:String(raw.styleConsist||'mid'),
+          fulfill:Number(raw.fulfill)||0,briefCoop:String(raw.briefCoop||'mid'),dataReady:String(raw.dataReady||'passive'),
+        };
+        return{...d,result:scoreKOL(d)};
+      });
+      rankingData.sort((a,b)=>b.result.total-a.result.total);
+      fill.style.width='100%';
+      status.textContent=`成功读取 ${rankingData.length} 个 KOL，已按评分排序`;
+      renderRanking();
+      setTimeout(()=>{prog.style.display='none';fill.style.width='0%'},800);
+    }catch(err){status.textContent='解析失败：'+err.message;fill.style.width='0%'}
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+function renderRanking(){
+  document.getElementById('ranking-output').style.display='block';
+  document.getElementById('ranking-title').textContent=`评分排名 · 共 ${rankingData.length} 位 KOL`;
+  const container=document.getElementById('ranking-rows');
+  container.innerHTML='';
+  rankingData.forEach((kol,idx)=>{
+    const r=kol.result;const g=gradeKOL(r.total);const rank=idx+1;
+    const strengths=getStrengths(r);
+    const flag={DE:'🇩🇪',GB:'🇬🇧',FR:'🇫🇷',MULTI:'🌍'}[kol.country]||'';
+    const numCls=rank===1?'rn-gold':rank===2?'rn-silver':rank===3?'rn-bronze':'';
+    const row=document.createElement('div');
+    row.className='rank-row';row.onclick=()=>openModal(idx);
+    row.innerHTML=`
+      <div class="rank-num ${numCls}">${rank}</div>
+      <div>
+        <div class="rank-name">${kol.name}</div>
+        <div class="rank-mkt">${flag} ${kol.country} · ${kol.niche}</div>
+        <div class="str-tags">${strengths.map(s=>`<span class="str-tag" style="background:${s.color}18;color:${s.color};border-color:${s.color}44">${s.label}</span>`).join('')}</div>
+      </div>
+      <div class="rank-total" style="color:${g.color}">${r.total}</div>
+      ${r.layerScores.map((s,i)=>`<div class="rank-dim">
+        <span style="color:${LAYERS[i].color}">${s}</span>
+        <div class="dim-bar" style="background:${LAYERS[i].color}22"><div style="height:3px;border-radius:2px;background:${LAYERS[i].color};width:${s}%"></div></div>
+      </div>`).join('')}
+    `;
+    container.appendChild(row);
+  });
+}
+
+function openModal(idx){
+  const kol=rankingData[idx];const r=kol.result;const g=gradeKOL(r.total);
+  const flag={DE:'🇩🇪',GB:'🇬🇧',FR:'🇫🇷',MULTI:'🌍'}[kol.country]||'';
+  const strengths=getStrengths(r);
+  document.getElementById('modal').innerHTML=`
+    <div class="modal-hd">
+      <div><div style="font-size:15px;font-weight:600;margin-bottom:2px">${kol.name}</div>
+      <div style="font-size:12px;color:var(--t2)">${flag} ${kol.country} · ${kol.niche}</div></div>
+      <div style="flex:1"></div>
+      <div style="text-align:right">
+        <div style="font-family:'DM Serif Display',Georgia,serif;font-size:42px;line-height:1;color:${g.color}">${r.total}</div>
+        <div style="font-size:11px;padding:2px 8px;border-radius:20px;background:${g.bg};color:${g.color};border:0.5px solid ${g.bc};display:inline-block;margin-top:4px">${g.label}</div>
+      </div>
+      <button class="btn ghost" onclick="closeModal()" style="margin-left:10px;padding:6px 10px" aria-label="关闭">
+        <i class="ti ti-x" style="font-size:16px" aria-hidden="true"></i>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div style="margin-bottom:12px">
+        <div style="font-size:11px;font-weight:500;color:var(--t3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">核心优势</div>
+        <div style="display:flex;flex-wrap:wrap;gap:6px">${strengths.map(s=>`<span class="str-tag" style="font-size:12px;padding:4px 12px;background:${s.color}18;color:${s.color};border-color:${s.color}44">${s.label} · ${s.score}分</span>`).join('')}</div>
+      </div>
+      ${r.inds.map((layer,li)=>{
+        const m=LAYERS[li];
+        return`<div style="margin-bottom:12px">
+          <div style="display:flex;align-items:center;gap:6px;font-size:11px;font-weight:500;color:var(--t2);margin-bottom:6px">
+            <span style="width:7px;height:7px;border-radius:50%;background:${m.color};display:inline-block"></span>
+            ${m.name} · ${r.layerScores[li]}分 · 权重${m.weight*100}%
+          </div>
+          ${layer.map(ind=>`<div class="ind-row">
+            <span class="ind-name">${ind.name}</span>
+            <div class="ind-mini"><div class="ind-mini-fill" style="width:${ind.score}%;background:${m.color}"></div></div>
+            <span class="ind-score" style="color:${ind.score>=75?m.color:ind.score>=50?'var(--t1)':'var(--t3)'}">${ind.score}</span>
+            <span class="ind-w">${ind.weight}%</span>
+          </div>`).join('')}
+        </div>`;}).join('')}
+    </div>`;
+  document.getElementById('overlay').classList.add('open');
+}
+function closeModal(){document.getElementById('overlay').classList.remove('open')}
+
+function exportRanking(){
+  if(!rankingData.length)return;
+  const rows=[['排名','KOL名称','市场','内容方向','综合评分','评级','受众匹配','内容专业','互动质量','VOC价值','商业效率','品牌适配','可执行性','核心优势']];
+  rankingData.forEach((kol,i)=>{
+    const r=kol.result;const g=gradeKOL(r.total);
+    const strengths=getStrengths(r).map(s=>s.label).join('、');
+    rows.push([i+1,kol.name,kol.country,kol.niche,r.total,g.label,...r.layerScores,strengths]);
+  });
+  const ws=XLSX.utils.aoa_to_sheet(rows);const wb=XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb,ws,'KOL排名');XLSX.writeFile(wb,'KOL商业价值评分排名.xlsx');
+}
+
+function downloadTemplate(){
+  const headers=['KOL名称','主要市场(DE/GB/FR/MULTI)','内容方向(review/ev/luxury/family/tech/lifestyle)',
+    '目标品牌类型(premium/mainstream/ev-brand)',
+    '目标市场受众占比%','语言能力(1/2/3)','汽车兴趣受众%','25-55岁受众%','收入水平(high/mid/low)',
+    '汽车内容专注%','测评深度(deep/mid/surface)','专业可信度(high/mid/low)',
+    'ERR%','完播率%','评论质量(high/mid/low)','分享收藏比%',
+    'VOC话题深度(high/mid/low)','VOC负面识别(high/mid/low)','历史车主反馈(yes/sometimes/no)',
+    'CPM报价€','行业基准CPM€','内容复用权(full/limited/none)','排他要求(none/soft/hard)',
+    '品牌调性匹配(match/neutral/conflict)','历史合作调性(match/neutral/conflict)','内容风格一致性(high/mid/low)',
+    '履约率%','Brief配合度(high/mid/low)','数据复盘意愿(active/passive/refuse)'];
+  const ws=XLSX.utils.aoa_to_sheet([headers]);
+  ws['!cols']=headers.map(h=>({wch:Math.max(h.length*1.4,16)}));
+  const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'KOL数据');
+  XLSX.writeFile(wb,'KOL评估模板_v3.xlsx');
+}
+
+function switchTab(tab,el){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('tab-upload').style.display=tab==='upload'?'':'none';
+  document.getElementById('tab-manual').style.display=tab==='manual'?'':'none';
+}
+</script>
+</body>
+</html>

@@ -1,75 +1,85 @@
 # Automotive Creator Screening
 
-面向欧洲汽车市场的 KOL（内容创作者）合作筛选与评估平台，覆盖英国、法国和德国市场。
+A KOL (content creator) partnership screening and evaluation platform for automotive brands operating in the European market, with support for the United Kingdom, France, and Germany.
 
-平台提供 KOL 档案管理、商业价值评分、合作风险评估、YouTube 数据导入和团队云端同步能力。项目为纯前端静态应用，无需构建步骤。
+The platform provides KOL profile management, commercial value scoring, partnership risk assessment, YouTube data imports, and optional cloud synchronization for teams. It is a static front-end application and requires no build step.
 
-## 快速开始
+## Quick Start
+
+Start a local HTTP server from the project directory:
 
 ```bash
 python3 -m http.server 8080
 ```
 
-浏览器访问 <http://localhost:8080>。
+Then open <http://localhost:8080> in your browser.
 
-> 不建议直接双击 HTML 文件运行。通过本地 HTTP 服务访问可以避免浏览器对本地文件的安全限制。
+> Opening the HTML files directly is not recommended. A local HTTP server avoids browser security restrictions associated with local files.
 
-## 项目结构
+## Project Structure
 
 ```text
 .
-├── index.html                              # KOL 合作管理平台
+├── index.html                              # KOL partnership management platform
 ├── src/
-│   └── kol-platform-core.js                # 评分、数据和集成核心逻辑（含注释）
+│   └── kol-platform-core.js                # Documented scoring, data, and integration logic
 ├── tools/
-│   ├── commercial-value-model.html         # 商业价值评分工具
-│   └── risk-assessment-model.html          # 风险评分工具
+│   ├── commercial-value-model.html         # Commercial value scoring tool
+│   └── risk-assessment-model.html          # Risk assessment tool
 ├── data/
-│   └── BYD_Xpeng_KOL_evaluation_data.xlsx  # 57 位欧洲 KOL 示例数据
+│   └── BYD_Xpeng_KOL_evaluation_data.xlsx  # Sample data for 57 European KOLs
 └── docs/
-    ├── architecture.html                   # 技术架构图
-    └── evaluation-model-guide.docx          # 评估模型说明文稿
+    ├── architecture.html                   # Technical architecture diagram
+    └── evaluation-model-guide.docx          # Evaluation model guide
 ```
 
-## 可选配置
+## Optional Configuration
 
-在主平台的“系统设置”中可以配置：
+The following integrations can be configured in **System Settings**:
 
-- YouTube Data API v3 Key：自动抓取频道及视频数据
-- Supabase URL 与 Key：团队共享 KOL 数据
-- C 端情感分析 API：获取 VOC 数据；未配置时使用演示模式
+- **YouTube Data API v3 key:** Automatically retrieves channel and video data.
+- **Supabase URL and key:** Synchronizes KOL data across team members.
+- **Consumer sentiment API:** Retrieves voice-of-customer data. The platform uses demonstration data when this integration is not configured.
 
-配置保存在当前浏览器的 `localStorage` 中。请勿将真实密钥直接写入源码或提交到 Git。
+Configuration values are stored in the current browser's `localStorage`. Never hard-code real credentials in the source code or commit them to Git.
 
-## 评分模型
+## Scoring Models
 
-商业价值评分包含 7 个维度：
+### Commercial Value
 
-- 受众匹配 20%
-- 内容专业 15%
-- 互动质量 15%
-- VOC 价值 15%
-- 商业效率 15%
-- 品牌适配 10%
-- 可执行性 10%
+The commercial value score consists of seven dimensions:
 
-风险评分包含 8 个维度：
+| Dimension | Weight |
+| --- | ---: |
+| Audience fit | 20% |
+| Content expertise | 15% |
+| Engagement quality | 15% |
+| Voice-of-customer value | 15% |
+| Commercial efficiency | 15% |
+| Brand fit | 10% |
+| Execution readiness | 10% |
 
-- 负面舆情 20%
-- 广告合规 15%
-- 竞品冲突 15%
-- 虚假流量 15%
-- 数据隐私 10%
-- 未成年受众 10%
-- 技术声明 10%
-- 执行风险 5%
+### Partnership Risk
 
-## 技术说明
+The risk score consists of eight dimensions:
 
-- HTML、CSS、原生 JavaScript
-- SheetJS：Excel 文件导入
-- YouTube Data API v3：频道数据获取
-- Supabase REST API：可选云端数据同步
-- 浏览器 `localStorage`：默认本地存储
+| Dimension | Weight |
+| --- | ---: |
+| Negative public sentiment | 20% |
+| Advertising compliance | 15% |
+| Competitor conflicts | 15% |
+| Fraudulent traffic | 15% |
+| Data privacy | 10% |
+| Underage audiences | 10% |
+| Technical claims | 10% |
+| Execution risk | 5% |
 
-外部字体、图标和 SheetJS 通过 CDN 加载，因此首次使用需要网络连接。
+## Technology
+
+- HTML, CSS, and vanilla JavaScript
+- SheetJS for Excel imports
+- YouTube Data API v3 for channel data
+- Supabase REST API for optional cloud synchronization
+- Browser `localStorage` for default local persistence
+
+External fonts, icons, and SheetJS are loaded from CDNs, so an internet connection is required on first use.
